@@ -4,14 +4,14 @@
   <modelVersion>4.0.0</modelVersion>
 
   <!--
-    Spring Boot の Parent POM を利用することで、Spring 関連ライブラリや
+    Spring Boot の Parent POM を利用し、Spring 関連ライブラリや
     Maven Plugin の互換性が取れたバージョン管理を Spring Boot 側へ委ねる。
   -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>4.1.1</version>
-    <relativePath />
+    <relativePath/>
   </parent>
 
   <groupId>com.example</groupId>
@@ -28,7 +28,7 @@
   <dependencies>
     <!--
       Spring MVC ベースの REST API を構築するための Starter。
-      Spring Boot 4 系では Web MVC 用 Starter が明示的に提供されている。
+      Spring Boot 4 系で Web MVC に必要な構成をまとめて導入する。
     -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -42,6 +42,25 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!--
+      NamedParameterJdbcTemplate を含む Spring JDBC の機能を利用する。
+      Repository 層では SQL を明示的に記述し、PostgreSQL へアクセスする。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <!--
+      Java アプリケーションから PostgreSQL へ JDBC 接続するための Driver。
+      実行時に必要な依存関係として runtime scope を指定する。
+    -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
     </dependency>
 
     <!--
