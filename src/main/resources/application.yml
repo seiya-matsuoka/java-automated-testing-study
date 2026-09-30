@@ -1,0 +1,4 @@
+spring:
+  application:
+    # Spring Boot がアプリケーションを識別するための論理名。
+    name: java-automated-testing-study
