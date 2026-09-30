@@ -2,3 +2,18 @@ spring:
   application:
     # Spring Boot がアプリケーションを識別するための論理名。
     name: java-automated-testing-study
+
+  datasource:
+    # 通常動作確認用 PostgreSQL Container への JDBC 接続先。
+    url: jdbc:postgresql://localhost:5432/order_management
+    username: app
+    password: app
+
+  sql:
+    init:
+      # PostgreSQL のような外部 DB でも起動時に SQL Script を実行する。
+      mode: always
+      schema-locations: classpath:schema.sql
+      data-locations: classpath:data.sql
+      continue-on-error: false
+      encoding: UTF-8

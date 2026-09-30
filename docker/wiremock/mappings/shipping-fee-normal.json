@@ -1,0 +1,16 @@
+{
+  "name": "shipping-fee-normal-response",
+  "request": {
+    "method": "POST",
+    "urlPath": "/shipping-fees/calculate"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "shippingFee": 800
+    }
+  }
+}
