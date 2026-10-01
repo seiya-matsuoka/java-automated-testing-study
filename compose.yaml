@@ -22,6 +22,12 @@ services:
     # Production Code の手動動作確認専用の Shipping Fee API Stub。
     # Unit 08 では、テストコードから制御する WireMock を別途学習・利用する。
     image: wiremock/wiremock:3.13.2
+
+    # 通常動作確認では plain HTTP の HTTP/2 を無効化し、
+    # Shipping Fee API Stub との通信を HTTP/1.1 で安定させる。
+    command:
+      - --disable-http2-plain
+
     ports:
       - "8081:8080"
     volumes:
