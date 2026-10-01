@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Spring Boot の Parent POM を利用し、Spring 関連ライブラリや
+    Maven Plugin の互換性が取れたバージョン管理を Spring Boot 側へ委ねる。
+  -->
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.1.1</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.example</groupId>
+  <artifactId>java-automated-testing-study</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>java-automated-testing-study</name>
+  <description>Java / Spring Boot automated testing study project</description>
+
+  <properties>
+    <!-- 学習・実行環境で使用する Java のメジャーバージョンを固定する。 -->
+    <java.version>21</java.version>
+  </properties>
+
+  <dependencies>
+    <!--
+      Spring MVC ベースの REST API を構築するための Starter。
+      Spring Boot 4 系で Web MVC に必要な構成をまとめて導入する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc</artifactId>
+    </dependency>
+
+    <!--
+      Request DTO などに Jakarta Bean Validation の制約を定義し、
+      Controller の入力値検証に利用する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!--
+      NamedParameterJdbcTemplate を含む Spring JDBC の機能を利用する。
+      Repository 層では SQL を明示的に記述し、PostgreSQL へアクセスする。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <!--
+      Java アプリケーションから PostgreSQL へ JDBC 接続するための Driver。
+      実行時に必要な依存関係として runtime scope を指定する。
+    -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!--
+      Spring の同期 HTTP Client である RestClient を利用するための Starter。
+      RestClient.Builder の Auto Configuration を含む HTTP Client 基盤を導入する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient</artifactId>
+    </dependency>
+
+    <!--
+      JUnit / AssertJ / Mockito などのテスト依存関係は、
+      Unit 01 以降で学習対象として段階的に追加する。
+    -->
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Spring Boot Application の実行・実行可能 JAR の作成に利用する。 -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>
