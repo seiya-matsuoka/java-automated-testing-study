@@ -1,6 +1,7 @@
 package com.example.orderapi.dto.order;
 
 import com.example.orderapi.service.model.CreateOrderCommand;
+import com.example.orderapi.service.model.CreateOrderItemCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
