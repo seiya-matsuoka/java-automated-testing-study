@@ -70,6 +70,11 @@ public class Order {
     return new Order(id, status, shippingPostalCode, items, priceSummary, createdAt, cancelledAt);
   }
 
+  /**
+   * Order の共通生成処理。
+   *
+   * <p>新規生成と永続化済みデータの復元の両方から利用し、 Order として成立するための Domain invariant を一か所で保証する。
+   */
   private Order(
       Long id,
       OrderStatus status,
@@ -79,18 +84,24 @@ public class Order {
       Instant createdAt,
       Instant cancelledAt) {
     Objects.requireNonNull(status, "status must not be null");
+
+    // 配送先郵便番号は API 入力だけでなく Domain Model 自体でも 7 桁数字に限定する。
     if (shippingPostalCode == null || !POSTAL_CODE_PATTERN.matcher(shippingPostalCode).matches()) {
       throw new IllegalArgumentException("shippingPostalCode must be 7 digits");
     }
+
+    // 注文は最低 1 明細を持つという業務上の前提を Domain Model 側でも保証する。
     if (items == null || items.isEmpty()) {
       throw new IllegalArgumentException("items must not be empty");
     }
     if (items.stream().anyMatch(Objects::isNull)) {
       throw new IllegalArgumentException("items must not contain null");
     }
+
     Objects.requireNonNull(priceSummary, "priceSummary must not be null");
     Objects.requireNonNull(createdAt, "createdAt must not be null");
 
+    // CANCELLED と cancelledAt の組み合わせを固定し、状態と日時の矛盾を持つ Order を生成させない。
     if (status == OrderStatus.CANCELLED && cancelledAt == null) {
       throw new IllegalArgumentException("cancelledAt is required for cancelled order");
     }
@@ -101,7 +112,10 @@ public class Order {
     this.id = id;
     this.status = status;
     this.shippingPostalCode = shippingPostalCode;
+
+    // 呼び出し元が保持する List の変更によって Order 内部の明細が変化しないよう不変コピーを保持する。
     this.items = List.copyOf(items);
+
     this.priceSummary = priceSummary;
     this.createdAt = createdAt;
     this.cancelledAt = cancelledAt;

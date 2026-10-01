@@ -33,6 +33,7 @@ public class PriceSummary {
     this.shippingFee = requireNonNegative(shippingFee, "shippingFee");
     this.totalAmount = requireNonNegative(totalAmount, "totalAmount");
 
+    // 4 つの金額を独立した値として受け取るため、不整合な組み合わせを Value Object として成立させない。
     BigDecimal expectedTotal = this.subtotal.subtract(this.discountAmount).add(this.shippingFee);
     if (this.totalAmount.compareTo(expectedTotal) != 0) {
       throw new IllegalArgumentException(

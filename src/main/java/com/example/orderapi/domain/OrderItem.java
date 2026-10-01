@@ -81,6 +81,7 @@ public class OrderItem {
       throw new IllegalArgumentException("lineAmount must not be negative");
     }
 
+    // DB から復元する保存済み金額も、単価と数量から導出される業務上の整合性を満たす必要がある。
     BigDecimal expectedLineAmount = unitPrice.multiply(BigDecimal.valueOf(quantity));
     if (lineAmount.compareTo(expectedLineAmount) != 0) {
       throw new IllegalArgumentException("lineAmount must match unitPrice * quantity");

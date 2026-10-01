@@ -64,10 +64,12 @@ public class OrderPriceCalculator {
       throw new IllegalArgumentException("subtotal must not be negative");
     }
 
+    // 境界値 10,000 円を割引対象に含め、9,999 円以下との差を業務ルールとして明確にする。
     if (subtotal.compareTo(DISCOUNT_THRESHOLD) < 0) {
       return BigDecimal.ZERO;
     }
 
+    // 日本円では小数円を扱わないため、割引額に生じた 1 円未満を切り捨てる。
     return subtotal.multiply(DISCOUNT_RATE).setScale(0, RoundingMode.DOWN);
   }
 }
