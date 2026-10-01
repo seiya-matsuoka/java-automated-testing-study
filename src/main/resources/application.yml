@@ -17,3 +17,9 @@ spring:
       data-locations: classpath:data.sql
       continue-on-error: false
       encoding: UTF-8
+
+external:
+  shipping-fee:
+    # 通常動作確認用 WireMock Container の Shipping Fee API Base URL。
+    # 自動テストではテスト環境に合わせた URL へ差し替える。
+    base-url: http://localhost:8081
