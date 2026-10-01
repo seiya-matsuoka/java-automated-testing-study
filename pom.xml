@@ -64,6 +64,15 @@
     </dependency>
 
     <!--
+      Spring の同期 HTTP Client である RestClient を利用するための Starter。
+      RestClient.Builder の Auto Configuration を含む HTTP Client 基盤を導入する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient</artifactId>
+    </dependency>
+
+    <!--
       JUnit / AssertJ / Mockito などのテスト依存関係は、
       Unit 01 以降で学習対象として段階的に追加する。
     -->
