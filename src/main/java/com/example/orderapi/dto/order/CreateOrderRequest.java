@@ -5,6 +5,7 @@ import com.example.orderapi.service.model.CreateOrderItemCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
 
@@ -18,7 +19,8 @@ public record CreateOrderRequest(
     @NotBlank(message = "shippingPostalCode is required")
         @Pattern(regexp = "^[0-9]{7}$", message = "shippingPostalCode must be 7 digits")
         String shippingPostalCode,
-    @NotEmpty(message = "items must not be empty") @Valid List<CreateOrderItemRequest> items) {
+    @NotEmpty(message = "items must not be empty")
+        List<@NotNull(message = "item must not be null") @Valid CreateOrderItemRequest> items) {
 
   /**
    * Web API の Request DTO を Service 層の Command へ変換する。
