@@ -139,7 +139,8 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ApiErrorResponse> handleUnexpected(Exception exception) {
     logger.error("Unexpected application error", exception);
 
-    return error(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "unexpected server error");
+    return error(
+        HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "unexpected server error");
   }
 
   /** Spring Validation の FieldError を API 共通 DTO へ変換する。 */
