@@ -51,12 +51,13 @@ public interface OrderRepository {
   List<Order> search(OrderStatus status, Instant createdFrom, Instant createdTo);
 
   /**
-   * 注文状態とキャンセル日時を更新する。
+   * 現在状態が想定した状態と一致する場合だけ、注文状態とキャンセル日時を更新する。
    *
    * @param id 注文 ID
-   * @param status 更新後の注文状態
+   * @param expectedStatus 更新前として想定する注文状態
+   * @param newStatus 更新後の注文状態
    * @param cancelledAt キャンセル日時。キャンセル以外では {@code null}
-   * @return 更新された行数
+   * @return 更新された行数。状態が変化済みまたは注文未存在の場合は 0
    */
-  int updateStatus(long id, OrderStatus status, Instant cancelledAt);
+  int updateStatus(long id, OrderStatus expectedStatus, OrderStatus newStatus, Instant cancelledAt);
 }

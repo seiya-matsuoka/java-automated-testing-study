@@ -104,13 +104,19 @@ public class JdbcOrderRepository implements OrderRepository {
         ON oi.order_id = o.id
       """;
 
+  /**
+   * 状態遷移前として想定した状態が現在も維持されている場合だけ更新する SQL。
+   *
+   * <p>Service で状態を確認した後に別 Transaction が状態を変更しても、 古い状態を前提とした UPDATE が成功しないよう DB 更新時にも状態を条件へ含める。
+   */
   private static final String UPDATE_STATUS_SQL =
       """
       UPDATE orders
       SET
-          status = :status,
+          status = :newStatus,
           cancelled_at = :cancelledAt
       WHERE id = :id
+        AND status = :expectedStatus
       """;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -228,18 +234,23 @@ public class JdbcOrderRepository implements OrderRepository {
   }
 
   @Override
-  public int updateStatus(long id, OrderStatus status, Instant cancelledAt) {
+  public int updateStatus(
+      long id, OrderStatus expectedStatus, OrderStatus newStatus, Instant cancelledAt) {
     if (id <= 0) {
       throw new IllegalArgumentException("id must be positive");
     }
-    if (status == null) {
-      throw new IllegalArgumentException("status must not be null");
+    if (expectedStatus == null) {
+      throw new IllegalArgumentException("expectedStatus must not be null");
+    }
+    if (newStatus == null) {
+      throw new IllegalArgumentException("newStatus must not be null");
     }
 
     MapSqlParameterSource parameters =
         new MapSqlParameterSource()
             .addValue("id", id)
-            .addValue("status", status.name())
+            .addValue("expectedStatus", expectedStatus.name())
+            .addValue("newStatus", newStatus.name())
             .addValue("cancelledAt", toOffsetDateTime(cancelledAt), Types.TIMESTAMP_WITH_TIMEZONE);
 
     return jdbcTemplate.update(UPDATE_STATUS_SQL, parameters);

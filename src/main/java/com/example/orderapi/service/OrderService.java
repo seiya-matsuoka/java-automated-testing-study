@@ -95,13 +95,9 @@ public class OrderService {
     long orderId = orderRepository.insertOrder(order);
     orderRepository.insertOrderItems(orderId, orderItems);
 
-    // 全商品検証後に在庫を更新し、途中で DB 更新が失敗した場合は Transaction 全体を rollback する。
+    // DB 上の現在在庫に対して条件付き減算を行い、事前確認後の競合でも在庫超過を防ぐ。
     for (PreparedOrderLine preparedLine : preparedLines) {
-      Product product = preparedLine.product();
-      int newStockQuantity = product.getStockQuantity() - preparedLine.orderItem().getQuantity();
-
-      int updatedRows = productRepository.updateStock(product.getId(), newStockQuantity);
-      assertSingleRowUpdated(updatedRows, "product stock update");
+      decreaseStockOrThrow(preparedLine);
     }
 
     return findRequiredOrder(orderId);
@@ -145,8 +141,7 @@ public class OrderService {
           orderId, order.getStatus(), OrderStatus.CONFIRMED);
     }
 
-    int updatedRows = orderRepository.updateStatus(orderId, OrderStatus.CONFIRMED, null);
-    assertSingleRowUpdated(updatedRows, "order confirm");
+    updateStatusOrThrow(orderId, order.getStatus(), OrderStatus.CONFIRMED, null, "order confirm");
 
     return findRequiredOrder(orderId);
   }
@@ -165,8 +160,7 @@ public class OrderService {
           orderId, order.getStatus(), OrderStatus.SHIPPED);
     }
 
-    int updatedRows = orderRepository.updateStatus(orderId, OrderStatus.SHIPPED, null);
-    assertSingleRowUpdated(updatedRows, "order ship");
+    updateStatusOrThrow(orderId, order.getStatus(), OrderStatus.SHIPPED, null, "order ship");
 
     return findRequiredOrder(orderId);
   }
@@ -188,18 +182,17 @@ public class OrderService {
           orderId, order.getStatus(), OrderStatus.CANCELLED);
     }
 
-    // 注文時の各明細数量を現在在庫へ戻し、キャンセルによる在庫復元を行う。
-    for (OrderItem item : order.getItems()) {
-      Product product = findRequiredProduct(item.getProductId());
-      int restoredStockQuantity = Math.addExact(product.getStockQuantity(), item.getQuantity());
+    Instant cancelledAt = Instant.now(clock);
 
-      int updatedRows = productRepository.updateStock(product.getId(), restoredStockQuantity);
+    // 状態更新を先に確定させ、同時 cancel のうち 1 Transaction だけが在庫復元へ進めるようにする。
+    updateStatusOrThrow(
+        orderId, order.getStatus(), OrderStatus.CANCELLED, cancelledAt, "order cancel");
+
+    // 在庫復元は DB 上の現在値へ原子的に加算し、他 Transaction の在庫更新を上書きしない。
+    for (OrderItem item : order.getItems()) {
+      int updatedRows = productRepository.increaseStock(item.getProductId(), item.getQuantity());
       assertSingleRowUpdated(updatedRows, "product stock restore");
     }
-
-    Instant cancelledAt = Instant.now(clock);
-    int updatedRows = orderRepository.updateStatus(orderId, OrderStatus.CANCELLED, cancelledAt);
-    assertSingleRowUpdated(updatedRows, "order cancel");
 
     return findRequiredOrder(orderId);
   }
@@ -246,6 +239,53 @@ public class OrderService {
     }
 
     return List.copyOf(preparedLines);
+  }
+
+  /**
+   * 事前確認済みの商品について、DB 上の現在在庫を条件付きで減算する。
+   *
+   * <p>更新件数が 0 の場合は、商品取得後から在庫更新までの間に別 Transaction が在庫を消費した 可能性があるため、現在値を再取得して在庫不足として扱う。
+   */
+  private void decreaseStockOrThrow(PreparedOrderLine preparedLine) {
+    Product product = preparedLine.product();
+    int quantity = preparedLine.orderItem().getQuantity();
+
+    int updatedRows = productRepository.decreaseStock(product.getId(), quantity);
+    if (updatedRows == 0) {
+      Product currentProduct = findRequiredProduct(product.getId());
+      throw new InsufficientStockException(
+          product.getId(), quantity, currentProduct.getStockQuantity());
+    }
+
+    assertSingleRowUpdated(updatedRows, "product stock decrease");
+  }
+
+  /**
+   * 想定した更新前状態が維持されている場合だけ注文状態を更新する。
+   *
+   * <p>更新件数が 0 の場合は最新の注文状態を再取得し、 別 Transaction によって先に状態が変更された場合を不正な状態遷移として扱う。
+   */
+  private void updateStatusOrThrow(
+      long orderId,
+      OrderStatus expectedStatus,
+      OrderStatus targetStatus,
+      Instant cancelledAt,
+      String operation) {
+    int updatedRows =
+        orderRepository.updateStatus(orderId, expectedStatus, targetStatus, cancelledAt);
+
+    if (updatedRows == 0) {
+      Order currentOrder = findRequiredOrder(orderId);
+
+      if (currentOrder.getStatus() != expectedStatus) {
+        throw new InvalidOrderStatusTransitionException(
+            orderId, currentOrder.getStatus(), targetStatus);
+      }
+
+      throw new IllegalStateException(operation + " did not update the expected order row");
+    }
+
+    assertSingleRowUpdated(updatedRows, operation);
   }
 
   /** Shipping Fee API から送料を取得し、HTTP Client 側の失敗を業務例外へ変換する。 */

@@ -42,10 +42,25 @@ public class JdbcProductRepository implements ProductRepository {
       WHERE id = :id
       """;
 
-  private static final String UPDATE_STOCK_SQL =
+  /**
+   * 在庫確認と減算を 1 つの UPDATE として実行する SQL。
+   *
+   * <p>事前に取得した在庫数を Java 側で再計算して上書きせず、 UPDATE 実行時点の DB 在庫が十分な場合だけ減算する。
+   * 複数注文が同時に同じ在庫を参照した場合でも、在庫を超えた減算を防ぐ。
+   */
+  private static final String DECREASE_STOCK_SQL =
       """
       UPDATE products
-      SET stock_quantity = :stockQuantity
+      SET stock_quantity = stock_quantity - :quantity
+      WHERE id = :id
+        AND stock_quantity >= :quantity
+      """;
+
+  /** キャンセル時の在庫復元を DB 上の現在値に対する加算として実行する SQL。 */
+  private static final String INCREASE_STOCK_SQL =
+      """
+      UPDATE products
+      SET stock_quantity = stock_quantity + :quantity
       WHERE id = :id
       """;
 
@@ -75,16 +90,32 @@ public class JdbcProductRepository implements ProductRepository {
   }
 
   @Override
-  public int updateStock(long productId, int newStockQuantity) {
-    if (newStockQuantity < 0) {
-      throw new IllegalArgumentException("newStockQuantity must not be negative");
-    }
+  public int decreaseStock(long productId, int quantity) {
+    validatePositiveQuantity(quantity);
 
     return jdbcTemplate.update(
-        UPDATE_STOCK_SQL,
+        DECREASE_STOCK_SQL,
         Map.of(
             "id", productId,
-            "stockQuantity", newStockQuantity));
+            "quantity", quantity));
+  }
+
+  @Override
+  public int increaseStock(long productId, int quantity) {
+    validatePositiveQuantity(quantity);
+
+    return jdbcTemplate.update(
+        INCREASE_STOCK_SQL,
+        Map.of(
+            "id", productId,
+            "quantity", quantity));
+  }
+
+  /** 在庫増減に使用する数量が正数であることを確認する。 */
+  private void validatePositiveQuantity(int quantity) {
+    if (quantity <= 0) {
+      throw new IllegalArgumentException("quantity must be positive");
+    }
   }
 
   /**

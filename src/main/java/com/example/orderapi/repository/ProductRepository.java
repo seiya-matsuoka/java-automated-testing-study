@@ -27,11 +27,20 @@ public interface ProductRepository {
   Optional<Product> findById(long id);
 
   /**
-   * 商品の現在在庫数を更新する。
+   * 在庫が注文数量以上ある場合だけ、DB 上の現在在庫から指定数量を減算する。
    *
    * @param productId 商品 ID
-   * @param newStockQuantity 更新後の在庫数
+   * @param quantity 減算する数量
+   * @return 更新された行数。在庫不足または商品未存在の場合は 0
+   */
+  int decreaseStock(long productId, int quantity);
+
+  /**
+   * DB 上の現在在庫へ指定数量を加算する。
+   *
+   * @param productId 商品 ID
+   * @param quantity 加算する数量
    * @return 更新された行数
    */
-  int updateStock(long productId, int newStockQuantity);
+  int increaseStock(long productId, int quantity);
 }
