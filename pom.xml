@@ -73,9 +73,15 @@
     </dependency>
 
     <!--
-      JUnit / AssertJ / Mockito などのテスト依存関係は、
-      Unit 01 以降で学習対象として段階的に追加する。
+      Unit 01 で JUnit の基本を学ぶための JUnit Jupiter。
+      API と Test Engine を test scope で導入し、Production Code の実行時依存には含めない。
+      Version は Spring Boot Parent の Dependency Management に委ねる。
     -->
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
