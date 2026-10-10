@@ -13,6 +13,23 @@ Unit 01 では JUnit の基本に集中する。
 
 ## 学習内容
 
+この Unit の学習内容は、大きく次の 2 種類に分けて読む。  
+すべての用語を同じ深さで暗記するのではなく、実コードと直接対応する内容はコードリーディングと実行まで含めて理解し、後続 Unit で本格的に扱う概念はまず全体の中での位置づけをつかむ。
+
+```text
+実コードと対応させて確認する内容:
+JUnit、JUnit Platform / Jupiter、src/test/java、@Test、
+基本的な Assertion、Arrange-Act-Assert、Given-When-Then、
+Test Discovery、Test Runner、Maven からの Test 実行
+
+まず役割・位置づけを理解する内容:
+System Test、E2E Test、Acceptance Test、Regression Test、
+Smoke Test、Test Pyramid、TDD、Red-Green-Refactor、BDD
+```
+
+後者についても Unit 01 の理解に必要な基本概念は説明するが、この時点で詳細な実践方法まで習得することを目的とはしない。  
+後続 Unit でテスト境界や Test Case 設計を広げる際に、Unit 01 で作った全体像へ具体的な経験を結び付けていく。
+
 ### Manual Test と Automated Test
 
 Manual Test は、人がアプリケーションを操作したり、コマンドを実行したりして期待どおりの結果になることを確認する方法を指す。  
@@ -302,6 +319,38 @@ void calculate_returnsPriceSummaryWithoutDiscount() {
 
 Test Method 名は、単なる連番ではなく、どの条件でどの振る舞いを期待しているかを読み取りやすい名前にしている。
 
+JUnit Jupiter では、Test Class や Test Method を `public` にする必要はない。  
+今回も次のように package-private の class と method を使用している。
+
+```java
+class OrderTest {
+
+    @Test
+    void create_setsInitialStateForNewOrder() {
+        // ...
+    }
+}
+```
+
+`public` を付けなくても JUnit Jupiter は Test として実行できるが、`private` にはしない。  
+Java のアクセス修飾子と JUnit の Test Discovery は別の観点であり、「Test だから `public` が必須」というルールではない。
+
+また、Test Code 冒頭では JUnit の Assertion method を static import している。
+
+```java
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+```
+
+そのため、Test Method 内では次のように class 名を付けずに呼び出せる。
+
+```java
+assertEquals(expected, actual);
+assertTrue(condition);
+```
+
+これは `Assertions.assertEquals(...)` のような呼び出しを短くし、Test の期待条件を読みやすくするための一般的な書き方となる。
+
 ### `@Test`
 
 `@Test` は、その method を JUnit Jupiter の Test Method として扱うための Annotation である。
@@ -338,6 +387,19 @@ assertEquals(OrderStatus.CREATED, order.getStatus());
 ```
 
 「値が返ってきた」だけでなく、その値が仕様上期待した値と一致していることを保証する。
+
+Object を `assertEquals` で比較する場合は、対象 Object の equality の定義も意識する必要がある。  
+今回の金額計算では `BigDecimal` を使用しており、`BigDecimal.equals()` は数値として同じかだけでなく scale も含めて比較する。
+
+例えば、次の 2 つは数値としてはどちらも 6,000 を表すが、`equals()` では同じ値として扱われない。
+
+```java
+new BigDecimal("6000")
+new BigDecimal("6000.00")
+```
+
+Unit 01 の Test では Production Code と期待値の scale が一致する値を使用しているため、現在の `assertEquals` は意図どおり成功する。  
+ここで重要なのは「`assertEquals` を使えば見た目が同じ値は必ず等しい」のではなく、比較対象の Java 型がどのように equality を定義しているかも Assertion の結果へ影響するという点となる。
 
 #### boolean の検証
 
@@ -483,6 +545,25 @@ Production Code が誤っている可能性
 Test Code の期待値や前提が誤っている可能性
 ```
 
+Maven Surefire の実行結果には、主に `Failures` と `Errors` が分けて表示される。  
+Unit 01 では、まず次の違いを押さえる。
+
+```text
+Failures:
+Assertion の期待値不一致など、
+Test は実行されたが期待した条件を満たさなかった場合
+
+Errors:
+Test Method から予期しない Exception が外へ出るなど、
+期待した検証まで正常に進めなかった場合
+```
+
+例えば `assertEquals` の期待値が実際値と異なる場合は、通常 `Failures` として集計される。  
+一方、Test の途中で想定していない RuntimeException などが発生し、その Exception を Test が期待していない場合は `Errors` として集計される。
+
+`assertThrows` は例外を期待する Assertion であるため、指定した種類の Exception が期待どおり発生した場合は Test 成功となる。  
+逆に、期待した Exception が発生しなかった場合や別の種類の Exception となった場合は、`assertThrows` 自体の期待条件を満たさないため Test Failure となる。
+
 ### Assertion Failure
 
 Assertion Failure は、Assertion が期待条件を満たさなかったことによる Test Failure を指す。
@@ -517,6 +598,46 @@ Framework 内部の大量の呼び出しより、まず自分が書いた Test C
 
 例えば `OrderPriceCalculatorTest.java:XX` が表示されていれば、その行の Assertion や SUT 呼び出しを起点に確認する。
 
+Assertion の期待値不一致では、概念上は次のような情報が表示される。
+
+```text
+org.opentest4j.AssertionFailedError:
+expected: <7000>
+ but was: <6000>
+
+at com.example.orderapi.service.OrderPriceCalculatorTest
+    .calculate_returnsPriceSummaryWithoutDiscount(OrderPriceCalculatorTest.java:XX)
+```
+
+この場合は、まず次を見る。
+
+```text
+Exception / Failure:
+AssertionFailedError
+
+期待値:
+7000
+
+実際値:
+6000
+
+自分のコード:
+OrderPriceCalculatorTest.java:XX
+```
+
+予期しない Exception の場合は、概念上は次のような表示になる。
+
+```text
+java.lang.IllegalStateException: unexpected state
+
+at com.example.orderapi.service.OrderPriceCalculator.calculate(OrderPriceCalculator.java:XX)
+at com.example.orderapi.service.OrderPriceCalculatorTest
+    .calculate_returnsPriceSummaryWithoutDiscount(OrderPriceCalculatorTest.java:XX)
+```
+
+この場合は `IllegalStateException` と message を確認し、その後で Test Code と Production Code の最初の該当行を追う。  
+実際の line number や Framework 内部の Stack Trace は実行時のコードや環境によって異なるため、ここでは「どこを見るか」を理解するための表示例として扱う。
+
 ### Test Discovery
 
 Test Discovery は、Test Runner が実行対象となる Test を見つける処理を指す。
@@ -543,6 +664,28 @@ Test Runner は、発見した Test を実際に実行し、成功・失敗を�
 ```
 
 Maven を入口にすることで、ローカルでも後の CI でも同じ Project 設定を使って Test を実行しやすくなる。
+
+今回の実行関係を大きく整理すると、次の流れになる。
+
+```text
+Maven Wrapper
+↓
+Maven
+↓
+Maven Surefire Plugin
+↓
+JUnit Platform
+↓
+JUnit Jupiter
+↓
+@Test が付いた Test Method
+```
+
+Maven Wrapper は Project で利用する Maven を起動する入口となる。  
+Maven の `test` phase では Surefire Plugin が Test 実行を担当し、JUnit Platform を通して JUnit Jupiter の Test Engine が Test を発見・実行する。
+
+Unit 01 では、この流れを「Maven と JUnit のどちらが何を担当しているか」を整理するために理解すればよい。  
+Surefire / Failsafe の実行管理や詳細な設定は Unit 10 で扱う。
 
 ### Maven からのテスト実行
 
@@ -986,6 +1129,18 @@ BUILD SUCCESS / BUILD FAILURE
 
 正常時は、Unit 01 の 6 Test がすべて成功し、Failures / Errors が 0 となることを確認する。
 
+Test 実行後は、Maven Surefire が生成した詳細な結果を次の directory から確認できる。
+
+```text
+target/surefire-reports/
+```
+
+通常は Test Class ごとの text report や XML report が生成される。  
+Console log だけでなく、後から Test 件数や Failure / Error の詳細を確認したい場合に利用できる。
+
+Unit 01 では report file の構造そのものを詳しく解析する必要はない。  
+「`./mvnw test` の結果は Console 表示だけでなく report としても残る」ことを確認できればよい。
+
 ### `OrderPriceCalculatorTest` だけを実行する
 
 ```bash
@@ -1023,7 +1178,19 @@ expected: <...>
  but was: <...>
 ```
 
-予期しない Exception の場合は Exception class と message を確認し、自分の Test / Production Code に最初に現れる Stack Trace の行を探す。
+この種類の失敗は通常 `Failures` に集計される。
+
+予期しない Exception の場合は Exception class と message を確認し、自分の Test / Production Code に最初に現れる Stack Trace の行を探す。  
+この種類の失敗は通常 `Errors` に集計される。
+
+一方、`assertThrows` で期待した Exception が発生した場合は正常な Test 成功となる。  
+「Exception が発生した = 必ず Test Error」ではなく、その Exception が Test Case で期待されているかどうかを区別して読む。
+
+必要に応じて、Console log とあわせて次も確認する。
+
+```text
+target/surefire-reports/
+```
 
 ### Assertion Failure を理解するための補足確認
 
