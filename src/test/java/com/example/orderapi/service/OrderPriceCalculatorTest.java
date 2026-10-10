@@ -25,7 +25,7 @@ class OrderPriceCalculatorTest {
    */
   @Test
   void calculate_returnsPriceSummaryWithoutDiscount() {
-    // Arrange: SUT と入力値を準備する。
+    // Arrange: 3,000 円 × 2 = 6,000 円とし、10,000 円未満の割引対象外となる条件を準備する。
     OrderPriceCalculator calculator = new OrderPriceCalculator();
     List<OrderItem> items =
         List.of(OrderItem.create(1L, "Standard Product", BigDecimal.valueOf(3_000), 2));
@@ -34,7 +34,7 @@ class OrderPriceCalculatorTest {
     // Act: 今回確認したい SUT の振る舞いを 1 回実行する。
     PriceSummary actual = calculator.calculate(items, shippingFee);
 
-    // Assert: 戻り値の存在と、業務仕様上重要な金額を期待値と比較する。
+    // Assert: 小計 6,000 円に割引はなく、送料 800 円を加えた 6,800 円となることを確認する。
     assertNotNull(actual);
     assertEquals(BigDecimal.valueOf(6_000), actual.getSubtotal());
     assertEquals(BigDecimal.ZERO, actual.getDiscountAmount());

@@ -77,7 +77,7 @@ class OrderTest {
    */
   @Test
   void confirmedOrder_canBeShippedAndCancelledButCannotBeConfirmedAgain() {
-    // Given
+    // Given: 確定処理そのものではなく、CONFIRMED 状態での判定を確認するため状態を直接復元する。
     Order order =
         Order.restore(
             1L,
