@@ -73,13 +73,21 @@
     </dependency>
 
     <!--
-      Unit 01 で JUnit の基本を学ぶための JUnit Jupiter。
-      API と Test Engine を test scope で導入し、Production Code の実行時依存には含めない。
-      Version は Spring Boot Parent の Dependency Management に委ねる。
+      Unit 01 から使用する JUnit Jupiter。
+      @Test、Assertions、Parameterized Test、Lifecycle Annotation などを提供する。
     -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Unit 02 で fluent assertion を学ぶために AssertJ Core を追加する。
+    -->
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
