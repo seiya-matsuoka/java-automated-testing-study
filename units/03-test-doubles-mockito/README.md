@@ -2,8 +2,8 @@
 
 ## この Unit の目的
 
-この Unit では、依存関係を持つ Service を Unit Test するときに、どこまでを本物として動かし、どこから先を Test Double に置き換えるかという考え方を学ぶ。
-Unit 01～02 では、`OrderPriceCalculator`、`Order`、`OrderItem`、`OrderStatus` など、外部依存を持たない小さな Java Object を直接 Test してきた。
+この Unit では、依存関係を持つ Service を Unit Test するときに、どこまでを本物として動かし、どこから先を Test Double に置き換えるかという考え方を学ぶ。  
+Unit 01～02 では、`OrderPriceCalculator`、`Order`、`OrderItem`、`OrderStatus` など、外部依存を持たない小さな Java Object を直接 Test してきた。  
 Unit 03 では、Repository、外部 API Client、時刻といった依存先を持つ `OrderService` を SUT とする。
 
 ## 学習内容
@@ -24,7 +24,8 @@ SUT の外側にある依存先を確認する
 SUT の状態と依存先との interaction を検証する
 ```
 
-という Test Boundary の判断を理解することが目的となる。  
+という Test Boundary の判断を理解することが目的となる。
+
 Unit 03 では Mockito を利用して、
 
 ```text
@@ -34,9 +35,10 @@ ShippingFeeClient
 Clock
 ```
 
-を制御可能な依存先へ置き換える。  
-一方で、すべてを Mock にするわけではない。
-`OrderServiceFakeAndSpyTest` では、`ProductRepository` に対して in-memory の `FakeProductRepository` を用意し、それを Mockito の Spy で包む。
+を制御可能な依存先へ置き換える。
+
+一方で、すべてを Mock にするわけではない。  
+`OrderServiceFakeAndSpyTest` では、`ProductRepository` に対して in-memory の `FakeProductRepository` を用意し、それを Mockito の Spy で包む。  
 また `Clock` については Mockito Mock ではなく、JDK が提供する `Clock.fixed(...)` という制御可能な実 Object を利用する。
 
 この比較を通して、
@@ -52,7 +54,8 @@ Mock にするべき
 ### Test Double
 
 Test Double は、Test 対象が依存する本物の Object の代わりとして利用する Object の総称である。  
-映画やドラマで俳優の代わりに Stand-in / Double が使われることになぞらえた用語であり、Test では本物の依存先の代役として利用する。  
+映画やドラマで俳優の代わりに Stand-in / Double が使われることになぞらえた用語であり、Test では本物の依存先の代役として利用する。
+
 例えば `OrderService` は、概念的に次の依存関係を持つ。
 
 ```text
@@ -78,7 +81,8 @@ HTTP
 ```
 
 まで含まれる。  
-すると、Test が失敗した場合に原因が `OrderService` なのか、DB なのか、HTTP なのかを切り分けにくくなる。  
+すると、Test が失敗した場合に原因が `OrderService` なのか、DB なのか、HTTP なのかを切り分けにくくなる。
+
 Unit 03 では、
 
 ```text
@@ -108,14 +112,16 @@ Mock
 ```
 
 これらは完全に独立した「特定ライブラリのクラス名」ではなく、Test 内でどのような役割を担うかという分類として理解する。  
-同じ Object が Test によって複数の役割を持つ場合もある。  
+同じ Object が Test によって複数の役割を持つ場合もある。
+
 例えば Mockito で作成した Object に対して、
 
 ```text
 when(...).thenReturn(...)
 ```
 
-だけを利用するなら、主に Stub として利用している。  
+だけを利用するなら、主に Stub として利用している。
+
 同じ Object に対して、
 
 ```text
@@ -126,14 +132,16 @@ verify(...)
 
 ### Dummy
 
-Dummy は、method や constructor の parameter を埋めるために渡すが、その Test では実際には利用しない値・Object を指す。  
+Dummy は、method や constructor の parameter を埋めるために渡すが、その Test では実際には利用しない値・Object を指す。
+
 例えば概念的に、
 
 ```java
 target.execute(requiredDependency, unusedDependency);
 ```
 
-という処理があり、Test Case では `unusedDependency` が絶対に利用されないことが保証されている場合、その parameter を埋めるだけの Object は Dummy として扱える。  
+という処理があり、Test Case では `unusedDependency` が絶対に利用されないことが保証されている場合、その parameter を埋めるだけの Object は Dummy として扱える。
+
 Dummy の役割は、
 
 ```text
@@ -143,13 +151,15 @@ interaction を記録すること
 ```
 
 ではない。  
-単に Test を成立させるための placeholder となる。  
-Unit 03 の実践コードでは Dummy 専用 Object を無理に作っていない。
+単に Test を成立させるための placeholder となる。
+
+Unit 03 の実践コードでは Dummy 専用 Object を無理に作っていない。  
 Dummy を登場させるためだけに不自然な Production Code や Test Code を追加するより、分類として理解することを優先する。
 
 ### Stub
 
-Stub は、SUT から依存先が呼ばれたときに、Test で決めた値・例外を返す Test Double である。  
+Stub は、SUT から依存先が呼ばれたときに、Test で決めた値・例外を返す Test Double である。
+
 Unit 03 では Mockito の、
 
 ```java
@@ -162,7 +172,8 @@ when(...).thenReturn(...)
 when(...).thenThrow(...)
 ```
 
-によって Stub の役割を作る。  
+によって Stub の役割を作る。
+
 例えば、
 
 ```java
@@ -190,7 +201,8 @@ when(mock.method(...))
         .thenReturn(value);
 ```
 
-という形で戻り値を指定できる。  
+という形で戻り値を指定できる。
+
 Unit 03 の注文作成 Test では、例えば次を Stub する。
 
 ```text
@@ -217,7 +229,8 @@ OrderRepository.findById
 
 ### 同じ method の連続 stubbing
 
-同じ method が 1 Test 内で複数回呼ばれ、呼び出しごとに異なる値を返したい場合がある。  
+同じ method が 1 Test 内で複数回呼ばれ、呼び出しごとに異なる値を返したい場合がある。
+
 注文確定では、
 
 ```text
@@ -230,7 +243,8 @@ OrderRepository.findById
 → CONFIRMED Order
 ```
 
-となる。  
+となる。
+
 Test Code では、
 
 ```java
@@ -239,7 +253,8 @@ when(orderRepository.findById(ORDER_ID))
         .thenReturn(Optional.of(confirmedOrder));
 ```
 
-としている。  
+としている。
+
 この Test では DB の状態変化そのものを再現しているわけではない。
 
 ```text
@@ -247,7 +262,8 @@ when(orderRepository.findById(ORDER_ID))
 更新後 Repository 応答
 ```
 
-を Stub の連続戻り値によって再現している。  
+を Stub の連続戻り値によって再現している。
+
 キャンセル Test でも同じ考えで、
 
 ```text
@@ -260,7 +276,8 @@ CANCELLED
 
 ### 例外の stubbing
 
-依存先が失敗した状況も Test で再現できる。  
+依存先が失敗した状況も Test で再現できる。
+
 Unit 03 では、
 
 ```java
@@ -269,7 +286,8 @@ when(shippingFeeClient.calculateShippingFee(...))
 ```
 
 として、Shipping Fee API 相当の依存先失敗を再現する。  
-実際に HTTP Server を落としたり、500 response を返す外部 API を準備したりする必要はない。  
+実際に HTTP Server を落としたり、500 response を返す外部 API を準備したりする必要はない。
+
 この Test で確認しているのは、
 
 ```text
@@ -280,12 +298,14 @@ OrderService が ShippingFeeServiceException へ変換
 DB 書き込みへ進まない
 ```
 
-という Service の振る舞いとなる。  
+という Service の振る舞いとなる。
+
 HTTP レベルの障害再現は Unit 08 で WireMock を利用して扱う。
 
 ### Fake
 
-Fake は、本物より簡略化されているが、実際に動作する実装を持つ Test Double である。  
+Fake は、本物より簡略化されているが、実際に動作する実装を持つ Test Double である。
+
 代表例として、
 
 ```text
@@ -296,14 +316,16 @@ Fake:
 in-memory Repository
 ```
 
-がある。  
+がある。
+
 Unit 03 では、
 
 ```text
 FakeProductRepository
 ```
 
-を用意している。  
+を用意している。
+
 内部では、
 
 ```java
@@ -327,7 +349,8 @@ when(productRepository.decreaseStock(...))
         .thenReturn(1);
 ```
 
-と呼び出しごとの戻り値を指定するのではない。  
+と呼び出しごとの戻り値を指定するのではない。
+
 Fake 自身が、
 
 ```text
@@ -342,7 +365,8 @@ decreaseStock(1, 2)
 
 ### Fake は本物の Repository Test ではない
 
-`FakeProductRepository` は `ProductRepository` interface の動きを一部再現するが、本物の JDBC Repository の正しさを保証するものではない。  
+`FakeProductRepository` は `ProductRepository` interface の動きを一部再現するが、本物の JDBC Repository の正しさを保証するものではない。
+
 Fake には、
 
 ```text
@@ -368,7 +392,8 @@ JdbcProductRepository が正しい
 
 ### Spy
 
-Spy は、実 Object の real behavior を利用しながら、method 呼び出しを観測したり、必要に応じて一部だけ stubbing したりできる Test Double である。  
+Spy は、実 Object の real behavior を利用しながら、method 呼び出しを観測したり、必要に応じて一部だけ stubbing したりできる Test Double である。
+
 Unit 03 では、
 
 ```java
@@ -376,7 +401,8 @@ FakeProductRepository productRepositorySpy =
         spy(new FakeProductRepository(List.of(initialProduct)));
 ```
 
-としている。  
+としている。
+
 この Object は、
 
 ```text
@@ -397,7 +423,8 @@ verify(productRepositorySpy).decreaseStock(PRODUCT_ID, 2);
 
 ### Mock
 
-Mock は、SUT と依存先の interaction を確認するために利用する Test Double である。  
+Mock は、SUT と依存先の interaction を確認するために利用する Test Double である。
+
 Mockito では、
 
 ```java
@@ -406,7 +433,8 @@ private OrderRepository orderRepository;
 ```
 
 のように作成する。  
-Mock は、Test が何も設定しなければ Production Repository と同じ処理を実行する Object ではない。  
+Mock は、Test が何も設定しなければ Production Repository と同じ処理を実行する Object ではない。
+
 例えば `OrderRepository` Mock は、
 
 ```text
@@ -427,7 +455,8 @@ verify で interaction を確認
 
 ### Mockito Mock は Stub と Mock の両方の役割を持ち得る
 
-Mockito の `@Mock` Object を作ったから、その Object の役割が常に「Mock」だけになるとは限らない。  
+Mockito の `@Mock` Object を作ったから、その Object の役割が常に「Mock」だけになるとは限らない。
+
 例えば、
 
 ```java
@@ -455,7 +484,8 @@ interaction を検証するために利用しているのか
 
 ### Mockito Mock と Stub の呼び方
 
-Mockito の Object を一般に「Mock」と呼ぶ場合がある。  
+Mockito の Object を一般に「Mock」と呼ぶ場合がある。
+
 ただし Test Double の役割分類では、
 
 ```text
@@ -472,7 +502,8 @@ verify で interaction を確認
 ### state verification
 
 state verification は、処理後の結果や状態を確認する Test の考え方である。  
-Unit 02 までの Test は主に state verification だった。  
+Unit 02 までの Test は主に state verification だった。
+
 例えば、
 
 ```java
@@ -495,15 +526,18 @@ Object の状態
 戻り値
 ```
 
-を見る。  
-Unit 03 でも state verification は引き続き利用する。  
+を見る。
+
+Unit 03 でも state verification は引き続き利用する。
+
 注文作成 Test では、
 
 ```java
 assertThat(actual).isSameAs(persistedOrder);
 ```
 
-や ArgumentCaptor で取得した Order の状態を確認する。  
+や ArgumentCaptor で取得した Order の状態を確認する。
+
 Fake / Spy Test では、
 
 ```java
@@ -515,7 +549,8 @@ assertThat(productRepositorySpy.currentStockQuantity(PRODUCT_ID))
 
 ### interaction verification
 
-interaction verification は、SUT が依存先をどのように利用したかを確認する。  
+interaction verification は、SUT が依存先をどのように利用したかを確認する。
+
 例えば、
 
 ```java
@@ -575,7 +610,8 @@ interaction verification だけに偏ると、内部実装へ Test が強く結�
 
 ### Mockito
 
-Mockito は Java の Test で Test Double を作成・制御・検証するための Library である。  
+Mockito は Java の Test で Test Double を作成・制御・検証するための Library である。
+
 Unit 03 では主に次を利用する。
 
 ```text
@@ -639,7 +675,8 @@ private Clock clock;
 
 ### `@Mock`
 
-`@Mock` は Mockito Mock Object を field として作成するために利用する。  
+`@Mock` は Mockito Mock Object を field として作成するために利用する。
+
 手動で、
 
 ```java
@@ -647,7 +684,8 @@ ProductRepository repository =
         Mockito.mock(ProductRepository.class);
 ```
 
-と書くこともできるが、Unit 03 では Annotation を利用する。  
+と書くこともできるが、Unit 03 では Annotation を利用する。
+
 `@Mock` が付いていること自体は、
 
 ```text
@@ -659,7 +697,8 @@ Test Case に必要な stubbing / verification だけを行う。
 
 ### `@InjectMocks`
 
-`@InjectMocks` は、Mockito が作成した Mock を利用して SUT を組み立てるために利用する。  
+`@InjectMocks` は、Mockito が作成した Mock を利用して SUT を組み立てるために利用する。
+
 Unit 03 では、
 
 ```java
@@ -668,7 +707,8 @@ private OrderService orderService;
 ```
 
 としている。  
-Production Code の `OrderService` は constructor で依存先を受け取るため、Mockito はその constructor parameter に対応する Mock を注入する。  
+Production Code の `OrderService` は constructor で依存先を受け取るため、Mockito はその constructor parameter に対応する Mock を注入する。
+
 重要なのは、
 
 ```text
@@ -681,7 +721,8 @@ Test 専用 constructor を追加する
 
 ### stubbing
 
-stubbing は、Test Double の応答を Test から決めることを指す。  
+stubbing は、Test Double の応答を Test から決めることを指す。
+
 Mockito では主に、
 
 ```text
@@ -689,7 +730,8 @@ thenReturn
 thenThrow
 ```
 
-を利用する。  
+を利用する。
+
 例えば、
 
 ```text
@@ -705,7 +747,8 @@ stubbing の目的は、SUT の外側を制御可能にすることとなる。
 
 ### verification
 
-verification は、Mock に対してどの interaction が行われたかを確認する。  
+verification は、Mock に対してどの interaction が行われたかを確認する。
+
 基本形は、
 
 ```java
@@ -713,7 +756,8 @@ verify(mock).method(...);
 ```
 
 となる。  
-指定回数を省略した場合は、基本的に 1 回呼ばれたことを期待する。  
+指定回数を省略した場合は、基本的に 1 回呼ばれたことを期待する。
+
 Unit 03 では、
 
 ```java
@@ -732,7 +776,8 @@ verify(mock, times(2))
         .method(...);
 ```
 
-と確認できる。  
+と確認できる。
+
 注文確定 / キャンセルでは、
 
 ```java
@@ -748,7 +793,8 @@ verify(orderRepository, times(2))
 更新後取得
 ```
 
-の 2 回を確認する。  
+の 2 回を確認する。
+
 キャンセル時の在庫復元では、
 
 ```java
@@ -772,7 +818,8 @@ verify(productRepository, times(2))
 呼ばれていないこと
 ```
 
-が仕様となる場合がある。  
+が仕様となる場合がある。
+
 商品が存在しない場合、
 
 ```java
@@ -780,7 +827,8 @@ verify(productRepository, never())
         .decreaseStock(anyLong(), anyInt());
 ```
 
-として、在庫更新へ進んでいないことを確認する。  
+として、在庫更新へ進んでいないことを確認する。
+
 発送済み注文のキャンセルでも、
 
 ```java
@@ -798,7 +846,8 @@ verify(productRepository, never())
 verifyNoInteractions(...)
 ```
 
-を利用できる。  
+を利用できる。
+
 商品が存在しない Test では、
 
 ```java
@@ -823,7 +872,8 @@ Order 保存しない
 
 ### Argument Matcher
 
-Mockito では method 引数を完全一致だけでなく Matcher で指定できる。  
+Mockito では method 引数を完全一致だけでなく Matcher で指定できる。
+
 Unit 03 では、
 
 ```text
@@ -833,7 +883,8 @@ anyInt()
 eq(...)
 ```
 
-を利用する。  
+を利用する。
+
 例えば、
 
 ```java
@@ -852,7 +903,8 @@ decreaseStock が呼ばれていない
 
 ### `eq(...)`
 
-Matcher を利用する場合、同じ method call の他の parameter でも Matcher を利用する必要がある場面がある。  
+Matcher を利用する場合、同じ method call の他の parameter でも Matcher を利用する必要がある場面がある。
+
 Unit 03 の Captor では、
 
 ```java
@@ -875,7 +927,8 @@ anyLong()
 anyInt()
 ```
 
-にすると Test が何を保証しているか弱くなる。  
+にすると Test が何を保証しているか弱くなる。
+
 例えば、
 
 ```java
@@ -897,7 +950,8 @@ verify(productRepository)
         .decreaseStock(anyLong(), anyInt());
 ```
 
-だけでは具体的な値を保証できない。  
+だけでは具体的な値を保証できない。
+
 今回の Test では、
 
 ```text
@@ -912,7 +966,8 @@ verify(productRepository)
 
 ### ArgumentCaptor
 
-ArgumentCaptor は、Mock method に実際に渡された argument を取り出して、後から詳細に検証するために利用する。  
+ArgumentCaptor は、Mock method に実際に渡された argument を取り出して、後から詳細に検証するために利用する。
+
 Unit 03 では、
 
 ```java
@@ -936,7 +991,8 @@ verify(orderRepository)
         .insertOrder(orderCaptor.capture());
 ```
 
-によって Repository に渡された Object を取得する。  
+によって Repository に渡された Object を取得する。
+
 その後、
 
 ```text
@@ -958,7 +1014,8 @@ verify(repository)
         .method(expected);
 ```
 
-で十分な場合も多い。  
+で十分な場合も多い。
+
 ArgumentCaptor は、
 
 ```text
@@ -974,7 +1031,8 @@ Test の意図が direct verification で十分なら、そちらを優先する
 
 ### `@Captor`
 
-`@Captor` は `ArgumentCaptor` を field として生成するために利用する。  
+`@Captor` は `ArgumentCaptor` を field として生成するために利用する。
+
 例えば、
 
 ```java
@@ -998,7 +1056,8 @@ Mockito の、
 spy(realObject)
 ```
 
-は、実 Object を Spy 化する。  
+は、実 Object を Spy 化する。
+
 Unit 03 では、
 
 ```java
@@ -1025,7 +1084,8 @@ verify(productRepositorySpy)
 
 ### Spy の注意点
 
-Spy は「本物の処理を実行する」という特徴がある。  
+Spy は「本物の処理を実行する」という特徴がある。
+
 そのため、Spy する Object が、
 
 ```text
@@ -1041,7 +1101,8 @@ Unit 03 では副作用を in-memory に閉じ込めた `FakeProductRepository` 
 
 ### 実物を使う場合と Test Double を使う場合
 
-Unit Test だから依存先をすべて Test Double にする必要はない。  
+Unit Test だから依存先をすべて Test Double にする必要はない。
+
 重要なのは、
 
 ```text
@@ -1052,7 +1113,8 @@ Unit Test だから依存先をすべて Test Double にする必要はない。
 Test の境界を不必要に広げない
 ```
 
-かどうかとなる。  
+かどうかとなる。
+
 `OrderServiceFakeAndSpyTest` では、
 
 ```java
@@ -1061,7 +1123,8 @@ Clock fixedClock =
 ```
 
 を利用する。  
-`Clock.fixed(...)` は Mockito Mock ではなく、JDK の実 Object となる。  
+`Clock.fixed(...)` は Mockito Mock ではなく、JDK の実 Object となる。
+
 固定時刻を必ず返すため、
 
 ```text
@@ -1082,7 +1145,8 @@ Production Code が直接、
 Instant.now()
 ```
 
-だけに依存していると、Test から現在時刻を制御しにくい。  
+だけに依存していると、Test から現在時刻を制御しにくい。
+
 `Clock` を依存として受け取ることで、
 
 ```text
@@ -1111,7 +1175,8 @@ SUT の外側か
 その依存先自身を今回 Test したいか
 ```
 
-などを考える。  
+などを考える。
+
 Unit 03 では、
 
 ```text
@@ -1130,7 +1195,8 @@ Repository や Client の実装自体の正しさは、Unit 03 の Test 対象�
 
 ### mock の使いすぎによる問題
 
-Mock は便利だが、多すぎると Test の品質を下げる場合がある。  
+Mock は便利だが、多すぎると Test の品質を下げる場合がある。
+
 代表的な問題は次となる。
 
 ```text
@@ -1141,7 +1207,8 @@ Test Setup が複雑になる
 Test が何を保証しているか分かりにくくなる
 ```
 
-例えば、method call の細かな順序や、仕様上重要でない内部 call まで大量に `verify()` すると、Production Code の内部構造を変更しにくくなる。  
+例えば、method call の細かな順序や、仕様上重要でない内部 call まで大量に `verify()` すると、Production Code の内部構造を変更しにくくなる。
+
 interaction verification は、
 
 ```text
@@ -1155,7 +1222,8 @@ Repository 更新
 
 ### Test Double と Test Boundary
 
-Test Double の中心は Mockito の文法ではなく Test Boundary となる。  
+Test Double の中心は Mockito の文法ではなく Test Boundary となる。
+
 次の問いを先に考える。
 
 ```text
@@ -1191,7 +1259,8 @@ Unit 03 でも Test はローカル JVM 上で完結し、Spring Context は起�
 
 ### JUnit Jupiter
 
-Test Framework として Unit 01～02 から継続して利用する。  
+Test Framework として Unit 01～02 から継続して利用する。
+
 Unit 03 では主に、
 
 ```text
@@ -1216,7 +1285,8 @@ mockito-junit-jupiter
 
 ### `mockito-core`
 
-Mockito の中心 API を提供する。  
+Mockito の中心 API を提供する。
+
 Unit 03 では主に、
 
 ```text
@@ -1236,7 +1306,8 @@ spy
 
 ### `mockito-junit-jupiter`
 
-JUnit Jupiter と Mockito を連携するために利用する。  
+JUnit Jupiter と Mockito を連携するために利用する。
+
 主に、
 
 ```text
@@ -1356,14 +1427,16 @@ Test ──> OrderService ─── Mock OrderRepository
 
 ### `FakeProductRepository`
 
-`FakeProductRepository` 自体は Unit 03 用の Test Support となる。  
+`FakeProductRepository` 自体は Unit 03 用の Test Support となる。
+
 Production Code の `ProductRepository` interface を実装し、
 
 ```text
 Map<Long, Product>
 ```
 
-を in-memory state として利用する。  
+を in-memory state として利用する。
+
 再現する範囲:
 
 ```text
@@ -1449,7 +1522,8 @@ Unit 01～02 の Test は削除せず、Unit 03 以降も Test Suite の一部�
 
 ## 前提
 
-Unit 01「自動テストの全体像と JUnit 基本」と Unit 02「テストケース設計と JUnit 実践」を完了していることを前提とする。  
+Unit 01「自動テストの全体像と JUnit 基本」と Unit 02「テストケース設計と JUnit 実践」を完了していることを前提とする。
+
 次の内容は理解済みとして扱う。
 
 ```text
@@ -1488,7 +1562,8 @@ ArgumentCaptor
 
 ## コードリーディング
 
-Unit 03 では、Mockito の API から読むのではなく、最初に Production Code の依存関係を確認する。  
+Unit 03 では、Mockito の API から読むのではなく、最初に Production Code の依存関係を確認する。
+
 基本順序は次となる。
 
 ```text
@@ -1514,7 +1589,8 @@ Fake / Spy Test と比較する
 ### 1. `OrderService` の依存関係を見る
 
 [`OrderService.java`](../../src/main/java/com/example/orderapi/service/OrderService.java) を開く。  
-最初に constructor dependency を確認する。  
+最初に constructor dependency を確認する。
+
 見る対象は、
 
 ```text
@@ -1524,8 +1600,10 @@ ShippingFeeClient
 Clock
 ```
 
-となる。  
-ここで「Mockito で Mock にする方法」をまだ考えない。  
+となる。
+
+ここで「Mockito で Mock にする方法」をまだ考えない。
+
 先に、
 
 ```text
@@ -1547,7 +1625,8 @@ Repository / Client / Clock
 → SUT 外
 ```
 
-とする。  
+とする。
+
 したがって、
 
 ```text
@@ -1563,7 +1642,8 @@ HTTP
 
 ### 3. `@Mock` を確認する
 
-[`OrderServiceMockitoTest.java`](../../src/test/java/com/example/orderapi/service/OrderServiceMockitoTest.java) を開く。  
+[`OrderServiceMockitoTest.java`](../../src/test/java/com/example/orderapi/service/OrderServiceMockitoTest.java) を開く。
+
 最初に、
 
 ```java
@@ -1619,7 +1699,8 @@ SUT 内部で生成された保存対象を観測するため
 
 ### 6. 注文作成正常系の Fixture を見る
 
-`createOrder_stubsDependenciesAndCapturesPersistenceArguments` を読む。  
+`createOrder_stubsDependenciesAndCapturesPersistenceArguments` を読む。
+
 最初に、
 
 ```text
@@ -1628,7 +1709,8 @@ CreateOrderCommand
 persistedOrder
 ```
 
-を確認する。  
+を確認する。
+
 Fixture が何を表すか整理する。
 
 ```text
@@ -1708,7 +1790,8 @@ verify(orderRepository)
 ```
 
 を見る。  
-`OrderService` が内部生成した `Order` を Repository に渡す瞬間に捕捉している。  
+`OrderService` が内部生成した `Order` を Repository に渡す瞬間に捕捉している。
+
 次の、
 
 ```java
@@ -1728,7 +1811,8 @@ verify(orderRepository)
 ```
 
 を見る。  
-`capture()` が Matcher として扱われるため、同じ invocation の `ORDER_ID` が `eq(...)` になっている点を確認する。  
+`capture()` が Matcher として扱われるため、同じ invocation の `ORDER_ID` が `eq(...)` になっている点を確認する。
+
 その後、
 
 ```text
@@ -1750,7 +1834,8 @@ OrderRepository
 Clock
 ```
 
-に対する `verify()` を確認する。  
+に対する `verify()` を確認する。
+
 ここで、
 
 ```text
@@ -1767,7 +1852,8 @@ Clock
 
 ### 13. Product 不存在 Test を読む
 
-`createOrder_whenProductDoesNotExist_stopsBeforeExternalAndPersistenceBoundaries` を読む。  
+`createOrder_whenProductDoesNotExist_stopsBeforeExternalAndPersistenceBoundaries` を読む。
+
 Stub は、
 
 ```text
@@ -1775,14 +1861,16 @@ ProductRepository.findById
 → Optional.empty()
 ```
 
-だけとなる。  
+だけとなる。
+
 その後、
 
 ```text
 ProductNotFoundException
 ```
 
-を確認する。  
+を確認する。
+
 重要なのは末尾の、
 
 ```java
@@ -1826,7 +1914,8 @@ verifyNoInteractions():
 
 ### 15. 例外 stubbing Test を読む
 
-`createOrder_whenShippingFeeClientFails_wrapsExceptionAndDoesNotWriteDatabase` を読む。  
+`createOrder_whenShippingFeeClientFails_wrapsExceptionAndDoesNotWriteDatabase` を読む。
+
 次を見る。
 
 ```java
@@ -1929,7 +2018,8 @@ verify(orderRepository, times(2))
 
 ### 20. キャンセル Test の Fixture を読む
 
-`cancel_whenConfirmed_restoresEveryItemAndUsesStubbedClock` を読む。  
+`cancel_whenConfirmed_restoresEveryItemAndUsesStubbedClock` を読む。
+
 private helper の、
 
 ```text
@@ -1938,7 +2028,8 @@ createCancelledOrderWithTwoItems
 createTwoPersistedItems
 ```
 
-を確認する。  
+を確認する。
+
 2 明細は、
 
 ```text
@@ -1977,7 +2068,8 @@ when(clock.instant())
 
 ### 22. SHIPPED のキャンセル不可 Test を読む
 
-`cancel_whenShipped_rejectsBeforeUpdateAndStockRestore` を読む。  
+`cancel_whenShipped_rejectsBeforeUpdateAndStockRestore` を読む。
+
 ここでは state verification だけでなく、
 
 ```text
@@ -1992,7 +2084,8 @@ Clock を呼ばない
 
 ### 23. private helper method を読む
 
-Test Method を読んだ後で private helper を読む。  
+Test Method を読んだ後で private helper を読む。
+
 `createPersistedOrder` では、
 
 ```java
@@ -2000,7 +2093,8 @@ Order.restore(...)
 ```
 
 で必要な状態を直接作っている。  
-Test の前提状態を作るために Production Code の状態遷移処理を呼ぶと、今回確認したい処理以外まで Test Fixture 準備へ含まれる。  
+Test の前提状態を作るために Production Code の状態遷移処理を呼ぶと、今回確認したい処理以外まで Test Fixture 準備へ含まれる。
+
 `restore()` を利用することで、
 
 ```text
@@ -2013,7 +2107,8 @@ SUT の Act
 ### 24. `FakeProductRepository` を読む
 
 次に [`FakeProductRepository.java`](../../src/test/java/com/example/orderapi/support/FakeProductRepository.java) を読む。  
-Mockito Mock との違いを意識する。  
+Mockito Mock との違いを意識する。
+
 Mock:
 
 ```text
@@ -2029,7 +2124,8 @@ method が real behavior を実行
 
 ### 25. Fake の constructor を読む
 
-初期 `Product` 一覧を Map へ格納する。  
+初期 `Product` 一覧を Map へ格納する。
+
 この初期状態が後の、
 
 ```text
@@ -2067,7 +2163,8 @@ Fake の内部 state が本当に変化する。
 
 ### 28. `currentStockQuantity` を読む
 
-これは Production Repository interface には存在しない Test Support 用 method となる。  
+これは Production Repository interface には存在しない Test Support 用 method となる。
+
 Fake の内部状態が、
 
 ```text
@@ -2080,7 +2177,8 @@ Fake の内部状態が、
 
 ### 29. Fake / Spy Test を読む
 
-[`OrderServiceFakeAndSpyTest.java`](../../src/test/java/com/example/orderapi/service/OrderServiceFakeAndSpyTest.java) を開く。  
+[`OrderServiceFakeAndSpyTest.java`](../../src/test/java/com/example/orderapi/service/OrderServiceFakeAndSpyTest.java) を開く。
+
 最初に、
 
 ```java
@@ -2101,7 +2199,8 @@ Clock fixedClock =
 ```
 
 を利用する。  
-Mockito Mock ではない。  
+Mockito Mock ではない。
+
 次を満たすため real object を選択できる。
 
 ```text
@@ -2137,7 +2236,8 @@ verify(productRepositorySpy)
         .decreaseStock(PRODUCT_ID, 2);
 ```
 
-を見る。  
+を見る。
+
 1 Object に対して、
 
 ```text
@@ -2150,7 +2250,8 @@ interaction verification
 
 ### 33. Mockito Test と Fake / Spy Test を比較する
 
-最後に両 Test を並べる。  
+最後に両 Test を並べる。
+
 Mockito Test:
 
 ```text
@@ -2390,7 +2491,8 @@ verify の書き方
 
 ### Test Double は本物を完全再現するものではない
 
-Mock / Stub / Fake は、本物の依存先のすべてを再現するわけではない。  
+Mock / Stub / Fake は、本物の依存先のすべてを再現するわけではない。
+
 例えば Fake Repository では、
 
 ```text
@@ -2467,7 +2569,8 @@ Mockito の `never()` / `verifyNoInteractions()` が有効となる。
 productRepository.findById
 ```
 
-は必要である。  
+は必要である。
+
 そのため、
 
 ```text
@@ -2503,7 +2606,8 @@ direct verify では不足するか
 
 ### Fake は state を持つ
 
-Fake は Stub と異なり、内部 state を持って real behavior を提供できる。  
+Fake は Stub と異なり、内部 state を持って real behavior を提供できる。
+
 今回の、
 
 ```text
@@ -2581,7 +2685,8 @@ Unit Test があるから Integration Test が不要になるわけではない�
 ### Dummy を実コードへ無理に登場させていない理由
 
 カリキュラムでは Test Double の分類として Dummy を扱う。  
-一方、Unit 03 の実際の `OrderService` Test では、Dummy 専用 Object を作る自然な場面がない。  
+一方、Unit 03 の実際の `OrderService` Test では、Dummy 専用 Object を作る自然な場面がない。
+
 そのため、
 
 ```text
@@ -2597,7 +2702,8 @@ Unit Test があるから Integration Test が不要になるわけではない�
 
 ### Fake と in-memory DB は同じ意味ではない
 
-今回の `FakeProductRepository` は Map を利用した Test Support であり、DB Engine ではない。  
+今回の `FakeProductRepository` は Map を利用した Test Support であり、DB Engine ではない。
+
 H2 などの in-memory DB と、
 
 ```text
