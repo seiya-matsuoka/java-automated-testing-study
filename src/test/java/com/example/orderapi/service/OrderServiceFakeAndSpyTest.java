@@ -63,6 +63,7 @@ class OrderServiceFakeAndSpyTest {
     FakeProductRepository productRepositorySpy =
         spy(new FakeProductRepository(List.of(initialProduct)));
 
+    // Clock は固定時刻を返す実物を簡単に作れるため、ここでは Mock にせず制御可能な real object を使う。
     Clock fixedClock = Clock.fixed(CREATED_AT, ZoneOffset.UTC);
     OrderService orderService =
         new OrderService(productRepositorySpy, orderRepository, shippingFeeClient, fixedClock);
@@ -89,6 +90,12 @@ class OrderServiceFakeAndSpyTest {
     verify(productRepositorySpy).decreaseStock(PRODUCT_ID, 2);
   }
 
+  /**
+   * 注文作成後に OrderRepository から再取得される Order Fixture を生成する。
+   *
+   * <p>この Test の主題は ProductRepository の Fake / Spy であるため、 OrderRepository 側は完成済み Order を Stub
+   * して、確認対象を広げすぎない。
+   */
   private Order createPersistedOrder() {
     OrderItem item =
         OrderItem.restore(

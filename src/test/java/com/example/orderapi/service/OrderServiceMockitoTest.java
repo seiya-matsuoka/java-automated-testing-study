@@ -180,6 +180,7 @@ class OrderServiceMockitoTest {
     when(shippingFeeClient.calculateShippingFee(POSTAL_CODE, BigDecimal.valueOf(6_000), 2))
         .thenThrow(clientFailure);
 
+    // 依存先で発生した同じ例外 instance が、Service が変換した例外の cause に保持されることを確認する。
     assertThatThrownBy(() -> orderService.createOrder(command))
         .isInstanceOf(ShippingFeeServiceException.class)
         .hasMessage("failed to calculate shipping fee")
@@ -204,6 +205,7 @@ class OrderServiceMockitoTest {
     Order createdOrder = createPersistedOrder(OrderStatus.CREATED, CREATED_AT, null);
     Order confirmedOrder = createPersistedOrder(OrderStatus.CONFIRMED, CREATED_AT, null);
 
+    // 1 回目は更新前、2 回目は更新後の Repository 応答として返す。
     when(orderRepository.findById(ORDER_ID))
         .thenReturn(Optional.of(createdOrder))
         .thenReturn(Optional.of(confirmedOrder));
@@ -232,6 +234,7 @@ class OrderServiceMockitoTest {
     Order confirmedOrder = createConfirmedOrderWithTwoItems();
     Order cancelledOrder = createCancelledOrderWithTwoItems(CANCELLED_AT);
 
+    // 1 回目はキャンセル前、2 回目はキャンセル後の Repository 応答として返す。
     when(orderRepository.findById(ORDER_ID))
         .thenReturn(Optional.of(confirmedOrder))
         .thenReturn(Optional.of(cancelledOrder));
@@ -289,11 +292,22 @@ class OrderServiceMockitoTest {
     verifyNoInteractions(shippingFeeClient, clock);
   }
 
+  /**
+   * 注文作成 Test で使用する最小構成の Command を生成する。
+   *
+   * <p>Test Case ごとに productId / quantity だけを変えられるようにし、 配送先など今回の確認対象ではない値は共通 Fixture として固定する。
+   */
   private CreateOrderCommand createCommand(long productId, int quantity) {
     return new CreateOrderCommand(
         POSTAL_CODE, List.of(new CreateOrderItemCommand(productId, quantity)));
   }
 
+  /**
+   * Repository から取得済みという前提の単一明細 Order を生成する。
+   *
+   * <p>状態遷移 Test では遷移処理そのものを使って前提状態を作らず、 {@code Order.restore(...)} で必要な status / timestamp
+   * を直接与えることで、 SUT の確認対象と Fixture 準備を分離する。
+   */
   private Order createPersistedOrder(OrderStatus status, Instant createdAt, Instant cancelledAt) {
     OrderItem item =
         OrderItem.restore(
@@ -319,6 +333,11 @@ class OrderServiceMockitoTest {
         cancelledAt);
   }
 
+  /**
+   * キャンセル正常系の事前状態として、在庫復元対象が 2 明細ある CONFIRMED Order を生成する。
+   *
+   * <p>1 明細だけでは「全明細分を復元する」という interaction を確認できないため、 異なる商品 ID / 数量を持つ 2 明細を Fixture として利用する。
+   */
   private Order createConfirmedOrderWithTwoItems() {
     return Order.restore(
         ORDER_ID,
@@ -334,6 +353,11 @@ class OrderServiceMockitoTest {
         null);
   }
 
+  /**
+   * キャンセル処理後に Repository から再取得される CANCELLED Order を生成する。
+   *
+   * <p>更新後の戻り値 Stub として利用し、固定した cancelledAt が 最終的な Order に反映されていることを state verification できるようにする。
+   */
   private Order createCancelledOrderWithTwoItems(Instant cancelledAt) {
     return Order.restore(
         ORDER_ID,
@@ -349,6 +373,12 @@ class OrderServiceMockitoTest {
         cancelledAt);
   }
 
+  /**
+   * キャンセル時の在庫復元 interaction を確認するための 2 明細 Fixture を生成する。
+   *
+   * <p>Product 1 は 2 個、Product 2 は 1 個として、 {@code increaseStock(1L, 2)} / {@code increaseStock(2L,
+   * 1)} の期待値と対応させる。
+   */
   private List<OrderItem> createTwoPersistedItems() {
     return List.of(
         OrderItem.restore(
