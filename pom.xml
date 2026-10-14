@@ -84,10 +84,31 @@
 
     <!--
       Unit 02 で fluent assertion を学ぶために AssertJ Core を追加する。
+      Unit 03 以降でも、Test の state verification や exception verification に利用する。
     -->
     <dependency>
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Unit 03 で Test Double / Mock / Stub / Spy / verification を学ぶための Mockito Core。
+      mock()、when()、verify()、ArgumentCaptor などの中心 API を提供する。
+    -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      JUnit Jupiter と Mockito を連携するための Extension。
+      @ExtendWith(MockitoExtension.class) と @Mock / @InjectMocks / @Captor を組み合わせて利用する。
+    -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
