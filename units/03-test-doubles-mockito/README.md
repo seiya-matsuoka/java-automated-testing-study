@@ -2361,7 +2361,6 @@ Spy がどの real method を実行したか
 
 ### stubbing を一時的に変更する場合
 
-正式な学習工程として Test Code の変更は必須ではない。  
 任意で Mockito の挙動を確認する場合のみ、例えば、
 
 ```text
