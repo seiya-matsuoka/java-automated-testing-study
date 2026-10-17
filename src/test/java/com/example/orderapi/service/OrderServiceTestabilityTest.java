@@ -150,7 +150,8 @@ class OrderServiceTestabilityTest {
     Order confirmedOrder = persistedOrder(OrderStatus.CONFIRMED, CREATED_AT, null);
     Order cancelledOrder = persistedOrder(OrderStatus.CANCELLED, CREATED_AT, CANCELLED_AT);
     when(orderRepository.findById(ORDER_ID))
-        .thenReturn(Optional.of(confirmedOrder), Optional.of(cancelledOrder));
+        .thenReturn(Optional.of(confirmedOrder))
+        .thenReturn(Optional.of(cancelledOrder));
     when(orderRepository.updateStatus(
             ORDER_ID, OrderStatus.CONFIRMED, OrderStatus.CANCELLED, CANCELLED_AT))
         .thenReturn(1);
