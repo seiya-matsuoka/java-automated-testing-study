@@ -93,6 +93,18 @@
     </dependency>
 
     <!--
+      Unit 05 で Spring MVC の Web 層だけを起動し、MockMvc による
+      Request / Response / Validation / Exception Handler Test を行う。
+      Spring Boot 4 系の Web MVC 専用 Test Starter を使用する。
+      spring-test、Spring Boot Test、JSONPath、JSONassert などの Test 基盤を提供する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
       Unit 03 で Test Double / Mock / Stub / Spy / verification を学ぶための Mockito Core。
       mock()、when()、verify()、ArgumentCaptor などの中心 API を提供する。
     -->
