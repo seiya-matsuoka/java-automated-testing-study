@@ -105,6 +105,39 @@
     </dependency>
 
     <!--
+      Unit 06 では @JdbcTest で JDBC 用の Test Slice を構成する。
+      Repository 自身の SQL を実 DB に通すための JdbcTemplate、Transaction、Test 基盤を利用する。
+      Spring Data JDBC の Repository は使用していないため、jdbc-test の Starter を選ぶ。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Testcontainers の Container を Spring Bean として管理し、
+      @ServiceConnection でテスト専用 DB の接続情報を DataSource へ渡す。
+      Container と Spring Test Context の存続期間を合わせるために利用する。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      通常確認用 DB とは独立した実 PostgreSQL を Docker 上に用意する。
+      Testcontainers 2 系の PostgreSQL Module を使用し、version は既存の Boot BOM に委ねる。
+      Container は Spring が管理するため、Testcontainers の JUnit Extension は追加しない。
+    -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
       Unit 03 で Test Double / Mock / Stub / Spy / verification を学ぶための Mockito Core。
       mock()、when()、verify()、ArgumentCaptor などの中心 API を提供する。
     -->
