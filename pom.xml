@@ -23,6 +23,8 @@
   <properties>
     <!-- 学習・実行環境で使用する Java のメジャーバージョンを固定する。 -->
     <java.version>21</java.version>
+    <!-- Unit 08 の HTTP Server 用 Test Double。Boot 管理外のため明示して固定する。 -->
+    <wiremock.version>3.13.2</wiremock.version>
   </properties>
 
   <dependencies>
@@ -101,6 +103,29 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      Unit 08 では @RestClientTest で HTTP Client 用の Test Slice を構成する。
+      実 RestClientConfig と Boot の Builder / JSON 変換を使用する。
+      MockRestServiceServer は Test 側で無効にし、WireMock まで実 HTTP 通信を通す。
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-restclient-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      外部 Shipping Fee API の HTTP 境界を、JUnit の JVM 内で再現する。
+      依存の多くを shaded package に隔離する standalone 版を選び、Boot の依存との競合を抑える。
+      配布形式の名前であり、別プロセスや Compose の Server を起動する指定ではない。
+    -->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <version>${wiremock.version}</version>
       <scope>test</scope>
     </dependency>
 
