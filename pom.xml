@@ -25,6 +25,8 @@
     <java.version>21</java.version>
     <!-- Unit 08 の HTTP Server 用 Test Double。Boot 管理外のため明示して固定する。 -->
     <wiremock.version>3.13.2</wiremock.version>
+    <!-- Unit 09 の実 HTTP 入口の検証。Boot 管理外のため version を明示する。 -->
+    <rest-assured.version>6.3.0</rest-assured.version>
   </properties>
 
   <dependencies>
@@ -126,6 +128,17 @@
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock-standalone</artifactId>
       <version>${wiremock.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!--
+      起動した Web Server へ HTTP Request を送り、Status / Header / JSON を検証する。
+      MockMvc 連携ではなく通常の HTTP Client を使い、Jackson 3 を含む既存基盤を維持する。
+    -->
+    <dependency>
+      <groupId>io.rest-assured</groupId>
+      <artifactId>rest-assured</artifactId>
+      <version>${rest-assured.version}</version>
       <scope>test</scope>
     </dependency>
 
