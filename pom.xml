@@ -27,6 +27,19 @@
     <wiremock.version>3.13.2</wiremock.version>
     <!-- Unit 09 の実 HTTP 入口の検証。Boot 管理外のため version を明示する。 -->
     <rest-assured.version>6.3.0</rest-assured.version>
+
+    <!--
+      通常の出力先は target とする。Coverage 計測や検証では target 内の専用ディレクトリを指定し、
+      clean の範囲を今回の出力に限定する。過去 Unit の保存ログと計測結果を同じ場所で上書きしない。
+    -->
+    <study.build.directory>${project.basedir}/target</study.build.directory>
+
+    <!--
+      実 DB または実 HTTP を使う Unit 06〜09 の Test Class を選ぶ。
+      Unit 08 の 2 クラスは package が異なるため個別に含める。
+      同じパターンを Surefire で除外し、Failsafe で含めることで、verify での重複を防ぐ。
+    -->
+    <study.integration.tests>**/repository/jdbc/*Test.java,**/service/*IntegrationTest.java,**/client/HttpShippingFeeClientTest.java,**/service/OrderServiceShippingFeeHttpTest.java,**/api/*ApiTest.java</study.integration.tests>
   </properties>
 
   <dependencies>
@@ -197,12 +210,224 @@
   </dependencies>
 
   <build>
+    <directory>${study.build.directory}</directory>
     <plugins>
       <!-- Spring Boot Application の実行・実行可能 JAR の作成に利用する。 -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
       </plugin>
+
+      <!--
+        test phase は純粋な Unit Test と MockMvc の Web MVC Slice を担当する。
+        MockMvc は Servlet の処理を通すが HTTP ポートを開かないため、DB や Server を準備せず実行できる。
+        明示的な excludes を追加しても内部クラスの既定除外を保ち、@Nested は JUnit に外側のクラスから発見させる。
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>**/*$*</exclude>
+            <exclude>${study.integration.tests}</exclude>
+          </excludes>
+          <!-- クラス候補が空の場合や、明示したクラス・メソッドに一致しない場合を検証の成功にしない。 -->
+          <failIfNoTests>true</failIfNoTests>
+          <failIfNoSpecifiedTests>true</failIfNoSpecifiedTests>
+        </configuration>
+      </plugin>
+
+      <!--
+        Boot の親 POM が管理する version と integration-test / verify の execution を有効にする。
+        integration-test で結果を記録し、post-integration-test を経由した後に verify で失敗を判定する。
+        テストが起動する Server・Container の Lifecycle と Cleanup は、既存の Spring / JUnit 設定が管理する。
+      -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>${study.integration.tests}</include>
+          </includes>
+          <failIfNoTests>true</failIfNoTests>
+          <failIfNoSpecifiedTests>true</failIfNoSpecifiedTests>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <!-- clean verify を実行しても、通常の target 直下や過去 Unit の保存結果を削除しない。 -->
+        <study.build.directory>${project.basedir}/target/unit10-coverage</study.build.directory>
+        <jacoco.version>0.8.16</jacoco.version>
+        <!--
+          Agent 引数は Maven の goal が実行時に設定するため、テスト JVM の起動時に @{...} で読む。
+          初期値は空にして、計測を skip した場合にも未展開の文字列が JVM に渡らないようにする。
+          通常の argLine は別に読み、利用者が -DargLine で与えた JVM オプションと連結する。
+        -->
+        <jacoco.surefire.argLine></jacoco.surefire.argLine>
+        <jacoco.failsafe.argLine></jacoco.failsafe.argLine>
+        <argLine></argLine>
+      </properties>
+      <build>
+        <plugins>
+          <!-- 1 fork を再利用し、同じ実行グループ内の Class が 1 つの実行データに集まるようにする。 -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+              <argLine>@{jacoco.surefire.argLine} ${argLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <forkCount>1</forkCount>
+              <reuseForks>true</reuseForks>
+              <argLine>@{jacoco.failsafe.argLine} ${argLine}</argLine>
+            </configuration>
+          </plugin>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>${jacoco.version}</version>
+            <executions>
+              <!-- Surefire の起動前に Agent 引数を準備し、その JVM の終了時に実行データを書き出す。 -->
+              <execution>
+                <id>prepare-surefire-coverage</id>
+                <phase>initialize</phase>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+                <configuration>
+                  <propertyName>jacoco.surefire.argLine</propertyName>
+                  <destFile>${project.build.directory}/jacoco/surefire.exec</destFile>
+                  <append>false</append>
+                </configuration>
+              </execution>
+
+              <!--
+                Failsafe の起動直前に別の Agent 引数と出力先を設定する。
+                Unit 09 の組み込み Web Server は同じテスト JVM 内で動くため、HTTP 入口側の Java コードも計測される。
+              -->
+              <execution>
+                <id>prepare-failsafe-coverage</id>
+                <phase>pre-integration-test</phase>
+                <goals>
+                  <goal>prepare-agent-integration</goal>
+                </goals>
+                <configuration>
+                  <propertyName>jacoco.failsafe.argLine</propertyName>
+                  <destFile>${project.build.directory}/jacoco/failsafe.exec</destFile>
+                  <append>false</append>
+                </configuration>
+              </execution>
+
+              <!--
+                test phase の既定の Surefire goal が終了してからレポートを生成する。
+                -Dgroups=unit を付けると純粋な Unit Test の計測になる。指定しなければ Web MVC Slice も含む。
+                HTML はソースの行・分岐の読解、XML はカウンターの比較に使う。
+              -->
+              <execution>
+                <id>report-surefire-coverage</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco/surefire.exec</dataFile>
+                  <outputDirectory>${project.build.directory}/site/jacoco-surefire</outputDirectory>
+                  <formats>
+                    <format>HTML</format>
+                    <format>XML</format>
+                  </formats>
+                </configuration>
+              </execution>
+
+              <!--
+                clean verify では専用ディレクトリの当回の 2 ファイルだけを使う。
+                Failsafe の成功判定後に merge し、同じ verify phase 内で宣言順に全体 Report を作る。
+                両プラグインの実行結果と両方の .exec がそろったことを確認してから全体 Coverage として読む。
+              -->
+              <execution>
+                <id>merge-suite-coverage</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>merge</goal>
+                </goals>
+                <configuration>
+                  <fileSets>
+                    <fileSet>
+                      <directory>${project.build.directory}/jacoco</directory>
+                      <includes>
+                        <include>surefire.exec</include>
+                        <include>failsafe.exec</include>
+                      </includes>
+                    </fileSet>
+                  </fileSets>
+                  <destFile>${project.build.directory}/jacoco/suite.exec</destFile>
+                </configuration>
+              </execution>
+              <execution>
+                <id>report-suite-coverage</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>report</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco/suite.exec</dataFile>
+                  <outputDirectory>${project.build.directory}/site/jacoco-suite</outputDirectory>
+                  <formats>
+                    <format>HTML</format>
+                    <format>XML</format>
+                  </formats>
+                </configuration>
+              </execution>
+
+              <!--
+                Report と同じ Production Class と suite.exec を使い、プロジェクト全体の Line / Branch 比率を判定する。
+                phase を割り当てず、全体計測後に -Pcoverage と両方の最低値を付けて
+                jacoco:check@check-suite-coverage を明示実行する。同じデータで閾値の違いを比較できる。
+                データがなければ JaCoCo は Check を skip するため、判定メッセージまで確認する。
+              -->
+              <execution>
+                <id>check-suite-coverage</id>
+                <phase>none</phase>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <configuration>
+                  <dataFile>${project.build.directory}/jacoco/suite.exec</dataFile>
+                  <haltOnFailure>true</haltOnFailure>
+                  <rules>
+                    <rule>
+                      <element>BUNDLE</element>
+                      <limits>
+                        <limit>
+                          <counter>LINE</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>${coverage.minimum.line}</minimum>
+                        </limit>
+                        <limit>
+                          <counter>BRANCH</counter>
+                          <value>COVEREDRATIO</value>
+                          <minimum>${coverage.minimum.branch}</minimum>
+                        </limit>
+                      </limits>
+                    </rule>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
