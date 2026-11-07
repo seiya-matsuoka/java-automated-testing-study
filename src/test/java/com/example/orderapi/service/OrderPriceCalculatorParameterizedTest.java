@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -23,6 +24,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * によって「同じ検証構造で入力と期待値だけが変わるケース」をまとめる。
  */
 @DisplayName("OrderPriceCalculator の Test Case 設計")
+// クラス単位の Tag により、割引境界と注文全体の計算を同じ Unit Test の計測に含める。
+@Tag("unit")
 class OrderPriceCalculatorParameterizedTest {
 
   private static final BigDecimal STANDARD_SHIPPING_FEE = BigDecimal.valueOf(800);

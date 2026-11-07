@@ -13,6 +13,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -24,6 +25,8 @@ import org.junit.jupiter.api.Test;
  * <p>依存先をすべて Mock にするのではなく、Test の目的に応じて Fake と Mock を選ぶ。
  */
 @DisplayName("ProductService の Dependency Injection と Test Isolation")
+// JDBC 実装の代わりに Test Double を使うため、商品検索の Service ロジックを DB なしの選択に含める。
+@Tag("unit")
 class ProductServiceTestabilityTest {
 
   private static final long PRODUCT_ID = 1L;
@@ -66,11 +69,10 @@ class ProductServiceTestabilityTest {
     assertThatThrownBy(() -> service.findById(404L))
         .isInstanceOf(ProductNotFoundException.class)
         .hasMessage("product not found: 404")
-        .satisfies(
-            exception -> {
-              ProductNotFoundException missing = (ProductNotFoundException) exception;
-              assertThat(missing.getProductId()).isEqualTo(404L);
-            });
+        .satisfies(exception -> {
+          ProductNotFoundException missing = (ProductNotFoundException) exception;
+          assertThat(missing.getProductId()).isEqualTo(404L);
+        });
   }
 
   /**

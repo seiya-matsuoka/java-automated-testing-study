@@ -23,6 +23,7 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -36,6 +37,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("OrderService と Fake / Spy")
+// Repository の処理がメモリー内で完結するため、Service の Unit Test として選択する。
+@Tag("unit")
 class OrderServiceFakeAndSpyTest {
 
   private static final long ORDER_ID = 100L;

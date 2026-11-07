@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -15,6 +16,8 @@ import org.junit.jupiter.params.provider.ValueSource;
  * <p>仕様で代表値として定義されている 0 / 1 / 2 / 98 / 99 / 100 を使い、 有効範囲の内側と外側を Parameterized Test でまとめて表現する。
  */
 @DisplayName("OrderItem 注文数量の境界値")
+// 外側のクラスに Tag を付けることで、内部の境界値ケースも Unit Test として選択できる。
+@Tag("unit")
 class OrderItemQuantityTest {
 
   @Nested

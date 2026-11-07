@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -13,6 +14,8 @@ import org.junit.jupiter.params.provider.CsvSource;
  * <p>4 状態 × confirm / ship / cancel の組み合わせを先に表として整理したうえで、 1 行を 1 Parameterized Test Case として表現する。
  */
 @DisplayName("OrderStatus の状態遷移 Test Matrix")
+// 状態と操作可否の判定を、Spring や永続化を介さずに比較するグループに含める。
+@Tag("unit")
 class OrderStatusTransitionTest {
 
   /**

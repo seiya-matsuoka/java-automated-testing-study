@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.Test;
  * <p>Order 自体を直接生成するため Spring Context や Repository は不要となる。 Unit 01 では boolean / null / equality の基本
  * Assertion を、 Domain Model の分かりやすい振る舞いと対応させて確認する。
  */
+// Order を直接組み立てるテストとして、-Dgroups=unit で選択できるようにする。
+@Tag("unit")
 class OrderTest {
 
   /**

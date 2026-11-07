@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -41,6 +42,8 @@ import org.mockito.ArgumentCaptor;
  * <p>すべての Test invocation で Fixture と Test Double を新規生成し、Test Class 間・実行順序間で mutable state を共有しない。
  */
 @DisplayName("OrderService の Testability と決定的な Test")
+// 依存先と時刻をテスト内で組み立てるため、繰り返しの各回を Unit Test の選択に含める。
+@Tag("unit")
 class OrderServiceTestabilityTest {
 
   private static final long ORDER_ID = 100L;
@@ -87,14 +90,13 @@ class OrderServiceTestabilityTest {
     verify(orderRepository).insertOrder(savedOrder.capture());
 
     assertThat(savedOrder.getValue())
-        .satisfies(
-            order -> {
-              assertThat(order.getCreatedAt()).isEqualTo(expectedCreatedAt);
-              assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
-              assertThat(order.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
-              assertThat(order.getShippingFee()).isEqualByComparingTo(SHIPPING_FEE);
-              assertThat(order.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_800));
-            });
+        .satisfies(order -> {
+          assertThat(order.getCreatedAt()).isEqualTo(expectedCreatedAt);
+          assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
+          assertThat(order.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
+          assertThat(order.getShippingFee()).isEqualByComparingTo(SHIPPING_FEE);
+          assertThat(order.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_800));
+        });
     assertThat(actual).isSameAs(persistedOrder);
     assertThat(productRepository.currentStockQuantity(PRODUCT_ID)).isEqualTo(8);
   }
