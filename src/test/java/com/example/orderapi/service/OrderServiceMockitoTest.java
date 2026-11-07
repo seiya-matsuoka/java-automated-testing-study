@@ -31,6 +31,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,6 +51,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("OrderService と Mockito")
+// Repository と送料 Client を Mock に置き換える Service の検証を、実 DB・実 HTTP の計測から分ける。
+@Tag("unit")
 class OrderServiceMockitoTest {
 
   private static final long ORDER_ID = 100L;
@@ -110,26 +113,24 @@ class OrderServiceMockitoTest {
     Order capturedOrder = orderCaptor.getValue();
 
     assertThat(capturedOrder)
-        .satisfies(
-            order -> {
-              assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
-              assertThat(order.getCreatedAt()).isEqualTo(CREATED_AT);
-              assertThat(order.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
-              assertThat(order.getShippingFee()).isEqualByComparingTo(BigDecimal.valueOf(800));
-              assertThat(order.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_800));
-            });
+        .satisfies(order -> {
+          assertThat(order.getStatus()).isEqualTo(OrderStatus.CREATED);
+          assertThat(order.getCreatedAt()).isEqualTo(CREATED_AT);
+          assertThat(order.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
+          assertThat(order.getShippingFee()).isEqualByComparingTo(BigDecimal.valueOf(800));
+          assertThat(order.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_800));
+        });
 
     // capture() は Argument Matcher として扱われるため、同じ呼び出し内の ID は eq() で揃える。
     verify(orderRepository).insertOrderItems(eq(ORDER_ID), orderItemsCaptor.capture());
 
     assertThat(orderItemsCaptor.getValue())
         .singleElement()
-        .satisfies(
-            item -> {
-              assertThat(item.getProductId()).isEqualTo(PRODUCT_ID);
-              assertThat(item.getQuantity()).isEqualTo(2);
-              assertThat(item.getLineAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
-            });
+        .satisfies(item -> {
+          assertThat(item.getProductId()).isEqualTo(PRODUCT_ID);
+          assertThat(item.getQuantity()).isEqualTo(2);
+          assertThat(item.getLineAmount()).isEqualByComparingTo(BigDecimal.valueOf(6_000));
+        });
 
     // Interaction verification: SUT が外部境界をどの引数で利用したかを確認する。
     verify(shippingFeeClient)
@@ -276,14 +277,13 @@ class OrderServiceMockitoTest {
 
     assertThatThrownBy(() -> orderService.cancel(ORDER_ID))
         .isInstanceOf(InvalidOrderStatusTransitionException.class)
-        .satisfies(
-            exception -> {
-              InvalidOrderStatusTransitionException actual =
-                  (InvalidOrderStatusTransitionException) exception;
-              assertThat(actual.getOrderId()).isEqualTo(ORDER_ID);
-              assertThat(actual.getCurrentStatus()).isEqualTo(OrderStatus.SHIPPED);
-              assertThat(actual.getTargetStatus()).isEqualTo(OrderStatus.CANCELLED);
-            });
+        .satisfies(exception -> {
+          InvalidOrderStatusTransitionException actual =
+              (InvalidOrderStatusTransitionException) exception;
+          assertThat(actual.getOrderId()).isEqualTo(ORDER_ID);
+          assertThat(actual.getCurrentStatus()).isEqualTo(OrderStatus.SHIPPED);
+          assertThat(actual.getTargetStatus()).isEqualTo(OrderStatus.CANCELLED);
+        });
 
     verify(orderRepository).findById(ORDER_ID);
     verify(orderRepository, never())

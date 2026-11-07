@@ -8,6 +8,7 @@ import com.example.orderapi.domain.OrderItem;
 import com.example.orderapi.domain.PriceSummary;
 import java.math.BigDecimal;
 import java.util.List;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test;
  * <p>Spring Context、DB、HTTP などを起動せず、計算クラスを直接生成して検証する。 Unit 01 では JUnit の基本構造と Assertion
  * の読み方を学ぶことを目的とし、 境界値分析や Parameterized Test などの体系的な Test Case 設計は後続 Unit で扱う。
  */
+// 計算クラスを直接呼ぶ基本ケースを、Spring Context を必要としない計測に含める。
+@Tag("unit")
 class OrderPriceCalculatorTest {
 
   /**

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.Test;
  * <p>同じ Order Fixture を複数 Test Method で利用し、Test の前後でどの状態を準備・破棄するかを Lifecycle Annotation と対応させて読む。
  */
 @DisplayName("Order Fixture と AssertJ")
+// メモリー内の Fixture だけで完結するため、JUnit の Lifecycle を使っていても純粋な Unit Test に含める。
+@Tag("unit")
 class OrderTestFixtureTest {
 
   private static Instant fixedCreatedAt;
@@ -66,14 +69,13 @@ class OrderTestFixtureTest {
   void orderObject_canBeVerifiedFluently() {
     assertThat(order)
         .isNotNull()
-        .satisfies(
-            actual -> {
-              assertThat(actual.getStatus()).isEqualTo(OrderStatus.CREATED);
-              assertThat(actual.getShippingPostalCode()).isEqualTo("1000001");
-              assertThat(actual.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(11_000));
-              assertThat(actual.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(10_700));
-              assertThat(actual.getCreatedAt()).isEqualTo(fixedCreatedAt);
-            });
+        .satisfies(actual -> {
+          assertThat(actual.getStatus()).isEqualTo(OrderStatus.CREATED);
+          assertThat(actual.getShippingPostalCode()).isEqualTo("1000001");
+          assertThat(actual.getSubtotal()).isEqualByComparingTo(BigDecimal.valueOf(11_000));
+          assertThat(actual.getTotalAmount()).isEqualByComparingTo(BigDecimal.valueOf(10_700));
+          assertThat(actual.getCreatedAt()).isEqualTo(fixedCreatedAt);
+        });
   }
 
   /** AssertJ の Collection Assertion を使い、明細数・順序・主要 property を確認する。 */
