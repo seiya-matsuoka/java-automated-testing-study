@@ -232,112 +232,44 @@ Wrapper 自体による配布版の取得、Docker Image の取得、テスト�
 
 ## 実行・確認
 
-### 既定の実行グループ
+### テストの実行
 
-Unit 10 の設定では、実 DB・実 HTTP を必要とするグループを Failsafe に割り当てている。  
-純粋な Unit Test と、HTTP ポートを開かない MockMvc のテストは Surefire で実行する。
+| コマンド        | 対象                                                     | 必要環境                                             |
+| --------------- | -------------------------------------------------------- | ---------------------------------------------------- |
+| `./mvnw test`   | Unit 01〜04 の純粋な Unit Test と Unit 05 の MVC Slice。 | Docker と実 HTTP は不要。                            |
+| `./mvnw verify` | Unit 01〜09 の Test Suite 全体。                         | Docker / Testcontainers とローカル HTTP を使用する。 |
 
-| 対象                               | Spring Context                                | Docker / PostgreSQL | 実 HTTP                                      | 既定の実行先 |
-| ---------------------------------- | --------------------------------------------- | ------------------- | -------------------------------------------- | ------------ |
-| Unit 01〜04：純粋な Unit Test      | 不要                                          | 不要                | 不要                                         | Surefire     |
-| Unit 05：Web MVC Slice             | MVC 用の Context                              | 不要                | 不要。MockMvc で Servlet の処理を通す。      | Surefire     |
-| Unit 06：JDBC Slice                | JDBC 用の Context                             | 一時 PostgreSQL     | 不要                                         | Failsafe     |
-| Unit 07：Service + Repository + DB | Boot の Context。Web Server は起動しない。    | 一時 PostgreSQL     | 不要。送料 Client は置き換える。             | Failsafe     |
-| Unit 08：外部 HTTP Client          | HTTP Client 用の Context                      | 不要                | WireMock へのローカル HTTP                   | Failsafe     |
-| Unit 09：注文 API 全体             | Boot の Context とランダムポートの Web Server | 一時 PostgreSQL     | REST Assured と WireMock によるローカル HTTP | Failsafe     |
+通常の Test Report は `target/surefire-reports/` と `target/failsafe-reports/` に出力される。
 
-この分類は、クラス名に `Integration` が含まれるかだけで決まるものではない。  
-[POM](pom.xml) の共通パターンを Surefire の除外条件と Failsafe の選択条件に使い、同じクラスの既定の二重実行を防いでいる。
+過去 Unit の README で `./mvnw test` を全体回帰として使う箇所は、現在の構成では `./mvnw verify` に読み替える。
 
-### テストの実行と部分選択
+テスト境界の詳細は [Unit 10 のテスト対象とテスト境界](units/10-test-management-coverage/README.md#テスト対象とテスト境界) を参照する。  
+クラス・メソッド・Tag による部分実行、実行対象の確認、失敗時の調査は [Unit 10 の実行・確認](units/10-test-management-coverage/README.md#実行確認) を参照する。
 
-次のコマンドは、それぞれ独立した実行例である。
+### Coverage の取得
 
-| 目的                     | コマンド                                                                              | 実行される対象                                                                                                     |
-| ------------------------ | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 既定のテスト             | `./mvnw test`                                                                         | Surefire：Unit 01〜04 の純粋な Unit Test と Unit 05 の MVC Slice。                                                 |
-| 純粋な Unit Test         | `./mvnw -Dgroups=unit test`                                                           | Surefire：`@Tag("unit")` が付いた Unit 01〜04。                                                                    |
-| クラス指定               | `./mvnw "-Dtest=OrderTest,OrderPriceCalculatorTest" test`                             | Surefire：指定した二つのクラス。                                                                                   |
-| 外部 HTTP 関連を追加確認 | `./mvnw "-Dit.test=HttpShippingFeeClientTest,OrderServiceShippingFeeHttpTest" verify` | Surefire の既定グループと、Failsafe に指定した Unit 08 の二つのクラス。Docker は不要で、ローカル HTTP を使用する。 |
-| Test Suite 全体          | `./mvnw verify`                                                                       | Surefire と Failsafe：Unit 01〜09 の既存テスト全体。Docker とローカル HTTP を使用する。                            |
-
-`verify` は先行する `test` も通るため、上の Unit 08 の指定は「Unit 08 だけを実行する」という意味ではない。  
-`-Dtest` は Surefire、`-Dit.test` は Failsafe の対象指定であり、`-Dgroups` は実行する Plugin に渡る JUnit の Tag 条件である。
-
-`-Dtest` は既定の除外を上書きするため、DB・HTTP を使うクラスも明示できる。  
-その場合は指定先の依存環境が必要になり、`verify` と組み合わせると Failsafe 側でも同じクラスが実行される可能性がある。  
-クラス・メソッド・Tag の組み合わせ方、0 件や重複の確認は [Unit 10](units/10-test-management-coverage/README.md) を参照する。
-
-**過去 Unit の README で、引数なしの `./mvnw test` を全体回帰として使う箇所は、現在のツリーでは `./mvnw verify` に読み替える。**  
-`./mvnw -o test` も、全体を確認する場合は `./mvnw -o verify` に読み替える。  
-過去 Unit の個別クラス・メソッド指定は、その対象本来の Docker・HTTP 要件を満たしたうえで利用できる。
-
-### Test Report の確認
-
-通常の出力先は `target/` である。
-
-| 出力                                                     | 確認する内容                                                                  |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `target/surefire-reports/TEST-*.xml` とクラス別の `.txt` | Surefire の対象クラス、ケース数、失敗・エラー・スキップ、失敗した Assertion。 |
-| `target/failsafe-reports/TEST-*.xml` とクラス別の `.txt` | Failsafe の対象クラスと実行結果。                                             |
-| `target/failsafe-reports/failsafe-summary.xml`           | Failsafe の実行結果の集計。                                                   |
-| Maven のコンソール                                       | 実行された goal、各 Plugin の集計、失敗原因、最終的なビルド結果。             |
-
-全体実行では、両 Plugin のクラス別結果を合わせて対象の抜けと重複がないことを確認する。  
-コンパイルエラー、テストの失敗、Docker / Context / DB / HTTP の準備失敗は、最後に到達した goal と最初の原因から切り分ける。
-
-同じ出力先には前回のクラス別 Report が残る場合があるため、ファイルがあることだけで今回実行したとは判断しない。  
-部分実行を比較するときは `-Dstudy.build.directory=target/unit10-local-selection` などで用途別に出力先を分け、当回のコンソールと Report を照合する。  
-対象が 0 件の場合は失敗させる設定を入れているが、想定したクラスとケースが実際に選択されたかも確認する。
-
-### Coverage の取得と確認
-
-Docker Engine とローカル HTTP を利用できる状態で、フィルターや skip を付けずに全体を計測する。
+Docker とローカル HTTP を利用できる状態で、フィルターや skip を付けずに全体を計測する。
 
 ```bash
 ./mvnw -Pcoverage clean verify
 ```
 
-`coverage` profile の既定の出力先は `target/unit10-coverage/` である。  
-このコマンドの `clean` は専用出力先の前回結果を削除し、当回の Surefire / Failsafe の実行データを取り直すために使う。  
-出力先を変更する場合は、削除対象と読み取る Report の場所も確認する。
+`clean` は Coverage 専用出力先 `target/unit10-coverage/` の前回結果を削除する。  
+全体の HTML Report は `target/unit10-coverage/site/jacoco-suite/index.html` に生成される。
 
-JaCoCo Agent を両 Plugin のテスト JVM に適用し、実行データを分けて取得する。  
-Failsafe の成功判定後に二つのデータを集計し、同じ Production Code に対する全体 Report を生成する。
+固定の運用閾値は設けておらず、Coverage Check は別途明示的に実行する。  
+部分計測、Report の読み方、Coverage Check、失敗時の切り分けは [Unit 10 の実行・確認](units/10-test-management-coverage/README.md#実行確認) を参照する。
 
-| 出力                                                                                     | 用途                                                             |
-| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `target/unit10-coverage/jacoco/surefire.exec`                                            | Surefire の実行データ。                                          |
-| `target/unit10-coverage/jacoco/failsafe.exec`                                            | Failsafe の実行データ。                                          |
-| `target/unit10-coverage/jacoco/suite.exec`                                               | 二つの実行データを集計したもの。                                 |
-| `target/unit10-coverage/site/jacoco-surefire/index.html`                                 | Surefire 分の Coverage をソースの行・分岐と対応づけて読む HTML。 |
-| `target/unit10-coverage/site/jacoco-suite/index.html`                                    | Test Suite 全体の Coverage を読む HTML。                         |
-| `target/unit10-coverage/site/jacoco-suite/jacoco.xml`                                    | 全体の Coverage カウンターを確認する XML。                       |
-| `target/unit10-coverage/surefire-reports/` と `target/unit10-coverage/failsafe-reports/` | 計測したテストの対象と成功・失敗を確認する Test Report。         |
+### サンプル API の通常起動（任意）
 
-部分実行でも Report は生成できるが、その結果は選択したテストの到達範囲を表す。  
-全体の結果として読む際は、両 Plugin の対象が実行され、当回の両方の `.exec` が集計されたことを確認する。
-
-HTML の実行行・未実行行・分岐から Production Code をたどり、対応する入力と Assertion を Test Code で確認する。  
-Coverage はコードへ到達した範囲であり、業務上重要な結果を正しく検証したかは Assertion と合わせて読む必要がある。
-
-**このリポジトリでは固定の運用閾値を採用していない。**  
-Coverage profile の `verify` は計測と Report 生成までを行い、Coverage Check は `jacoco:check@check-suite-coverage` を明示的に実行する。  
-Check は Production Class 全体の Line / Branch 比率を対象とし、`coverage.minimum.line` と `coverage.minimum.branch` を実行時に指定する。
-
-純粋な Unit Test のみの計測、Check の実行、閾値未達と設定エラーの切り分けは [Unit 10 の実行・確認](units/10-test-management-coverage/README.md#実行確認) を参照する。  
-`target/` 以下の Report・実行データ・ログは再生成可能な無視対象であり、新しい checkout に保存済みファイルがあることを前提にしない。
-
-### サンプル API の通常動作を確認する場合
-
-通常用 PostgreSQL と送料 Stub を Compose で起動し、アプリケーションをローカル JVM で実行する。
+通常用 PostgreSQL と送料 Stub を Compose で起動し、状態を確認する。
 
 ```bash
 docker compose up -d
 docker compose ps
 ```
 
-PostgreSQL が healthy になり、送料 Stub が起動していることを確認してから、次を実行する。
+PostgreSQL が healthy になり、送料 Stub が起動していることを確認してから、アプリケーションを起動する。
 
 ```bash
 ./mvnw spring-boot:run
@@ -349,24 +281,14 @@ PostgreSQL が healthy になり、送料 Stub が起動していることを確
 curl http://localhost:8080/api/products
 ```
 
-| 接続先                  | 用途                             |
-| ----------------------- | -------------------------------- |
-| `http://localhost:8080` | 注文管理 REST API。              |
-| `localhost:5432`        | 通常用 PostgreSQL。              |
-| `http://localhost:8081` | 通常用の Shipping Fee API Stub。 |
-
-通常起動では [application.yml](src/main/resources/application.yml) に従い、[schema.sql](src/main/resources/schema.sql) と [data.sql](src/main/resources/data.sql) を適用する。  
-通常用 DB のデータは Compose の `postgres-data` Volume に保存され、停止後も保持される。
-
 終了時はアプリケーションのターミナルで `Ctrl+C` を入力し、通常用 Container を停止する。
 
 ```bash
 docker compose stop
 ```
 
-**自動テストのために通常用 Compose やアプリケーションを起動する必要はない。**  
-テストは通常用 DB・Volume・送料 Stub と分離され、テスト用 SQL を使う一時 DB、WireMock、必要な Web Server をテスト側で準備する。  
-Server・Container の終了は既存の Spring / JUnit / Testcontainers の Lifecycle で管理し、通常用 DB をテストの確認先や後始末の対象にしない。
+**自動テストでは、通常用 Compose やアプリケーションの別途起動は不要である。**  
+通常用の環境・データの詳細は [サンプルアプリケーション仕様](docs/planning/sample-application-spec.md) を参照する。
 
 ---
 
