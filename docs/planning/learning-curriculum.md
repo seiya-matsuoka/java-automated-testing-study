@@ -4,7 +4,7 @@
 
 このドキュメントは、`java-automated-testing-study` における学習範囲と学習順序を定義する。  
 Java / Spring Boot の Web アプリケーションを題材として、自動テスト・テストコードに関する基礎から実務で頻出する周辺技術までを体系的に一周することを目的とする。  
-JUnit の API だけを個別に覚えるのではなく、何をどの粒度でテストするのか、依存関係をどのように扱うのか、DB・HTTP・外部 API を含む場合にどのようなテストへ広げるのか、作成したテスト群をどのように管理・自動実行するのかまでを一連の流れとして理解する。
+JUnit の API だけを個別に覚えるのではなく、何をどの粒度でテストするのか、依存関係をどのように扱うのか、DB・HTTP・外部 API を含む場合にどのようなテストへ広げるのか、作成したテスト群をどのように管理・実行し Coverage を確認するのかまでを一連の流れとして理解する。
 
 ## 2. 学習目標
 
@@ -19,7 +19,6 @@ JUnit の API だけを個別に覚えるのではなく、何をどの粒度で
 - Spring JDBC と明示的な SQL を用いた Repository を、実 PostgreSQL に対してテストする方法を理解する。
 - WireMock や REST Assured を用いて、外部 API や実 HTTP 通信を含むテストを理解する。
 - Maven による Unit Test / Integration Test の実行管理と、JaCoCo による Coverage の確認方法を理解する。
-- GitHub Actions によって、自動テストを CI 上で実行する一連の流れを理解する。
 - 実務で自動テストに関する会話やコードに触れた際に、主要な用語・考え方・代表的なツールの役割を把握できる基礎を作る。
 
 ## 3. 学習対象
@@ -39,7 +38,6 @@ JUnit の API だけを個別に覚えるのではなく、何をどの粒度で
 - REST Assured
 - Maven Surefire / Failsafe
 - JaCoCo
-- GitHub Actions
 - Unit Test / Integration Test / API Test
 - Test Double
 - Test Fixture
@@ -48,7 +46,6 @@ JUnit の API だけを個別に覚えるのではなく、何をどの粒度で
 - Test Matrix
 - Flaky Test
 - Testability
-- CI による自動テスト実行
 
 学習では、1 つの Spring Boot 製の注文管理 REST API をメインアプリとして使用する。  
 基本的には全 Unit をメインアプリで学習し、メインアプリへ不自然なコードや悪い設計を入れる必要がある場合のみ、補助教材を使用する。
@@ -77,6 +74,7 @@ JUnit の API だけを個別に覚えるのではなく、何をどの粒度で
 - PIT
 - Security Test
 - Chaos Testing
+- GitHub Actions による CI 環境の構築・実行
 - CD / Deployment
 - TDD を中心とした開発プロセスの実践
 - BDD を中心とした開発プロセスの実践
@@ -107,13 +105,11 @@ Spring Boot + DB の Integration Test
 REST API 全体
         ↓
 テストスイート全体の管理・Coverage
-        ↓
-CI による自動実行
 ```
 
 前半では、Spring を必要以上に意識せず、自動テストそのものの基礎を学ぶ。  
 中盤では、Spring Boot の Web 層、DB、外部 HTTP API など、実際のバックエンドアプリケーションで登場する境界へ学習対象を広げる。  
-後半では、作成したテスト群をプロジェクト全体として管理し、CI 上で自動実行するところまで扱う。
+後半では、作成したテスト群をプロジェクト全体として管理し、Maven による実行と JaCoCo による Coverage の確認まで扱う。
 
 ## 6. Unit 一覧
 
@@ -129,7 +125,6 @@ CI による自動実行
 | 08   | `08-external-http-api-testing`             | 外部 HTTP API のテスト               | メインアプリ            |
 | 09   | `09-rest-api-testing`                      | REST API 全体のテスト                | メインアプリ            |
 | 10   | `10-test-management-coverage`              | テスト実行管理と Coverage            | メインアプリ            |
-| 11   | `11-ci-automated-testing`                  | CI による自動テスト                  | メインアプリ            |
 
 ## 7. Unit 01 自動テストの全体像と JUnit 基本
 
@@ -662,57 +657,7 @@ Coverage の数値を上げること自体を目的にしない。
 Line Coverage や Branch Coverage を、テストされていないコードや条件分岐を見つけるための補助情報として利用する。  
 Coverage が高くても、Assertion が弱い、重要な振る舞いを確認していないなど、テスト品質が十分とは限らないことを理解する。
 
-## 17. Unit 11 CI による自動テスト
-
-### 学習目的
-
-ローカルで手動実行していた自動テストを、GitHub Actions によって継続的に自動実行する流れを理解する。  
-CI 上で build、Unit Test、Integration Test、Coverage Check を実行し、失敗時に結果を確認できる状態を作る。
-
-### 主な学習内容
-
-- CI
-- Continuous Integration
-- CI を利用する目的
-- Shift Left
-- local test と CI test
-- reproducibility
-- push / Pull Request と自動テスト
-- CI Pipeline
-- GitHub Actions
-- Workflow
-- Job
-- Step
-- checkout
-- JDK setup
-- Maven build
-- Unit Test
-- Integration Test
-- Testcontainers を含む CI 実行
-- Coverage
-- Coverage Check
-- Test Report
-- Coverage Report
-- Artifact
-- CI failure
-- CI log の読み方
-- Matrix Build
-- matrix strategy
-- JDK version などの実行環境の組み合わせ
-- Test Matrix と CI Matrix の違い
-
-### 主な対象
-
-`java-automated-testing-study` プロジェクト全体を対象とし、Unit 01～10 までに構築したテスト環境を CI 上で再現する。
-
-### 学習上のポイント
-
-自動テストの価値は、ローカルでコマンドを実行できることだけではなく、変更のたびに同じテストを継続的に再実行できることにある。  
-CI の成功・失敗を通じて、テストコード、Build Tool、DB Test、Coverage が一つの開発フローとしてつながることを理解する。
-
-CD / Deployment は今回の対象外とする。
-
-## 18. Unit を横断して理解する主要概念
+## 17. Unit を横断して理解する主要概念
 
 一部の概念は、1 つの Unit だけで完結せず、複数 Unit を通して理解を深める。
 
@@ -721,7 +666,7 @@ CD / Deployment は今回の対象外とする。
 | Unit Test                                 | 01～04         |
 | Integration Test                          | 01、06、07、09 |
 | E2E Test                                  | 01、09         |
-| Regression Test                           | 01、10、11     |
+| Regression Test                           | 01、10         |
 | Test Pyramid                              | 01、10         |
 | Test Scenario / Test Case                 | 01、02         |
 | Test Oracle                               | 02             |
@@ -737,19 +682,17 @@ CD / Deployment は今回の対象外とする。
 | Flaky Test / Brittle Test                 | 04、10         |
 | Spring Context / Test Slice               | 05～07         |
 | DB Test                                   | 06、07、09     |
-| Testcontainers                            | 06、07、09、11 |
+| Testcontainers                            | 06、07、09     |
 | External API Test                         | 08、09         |
 | WireMock                                  | 08、09         |
 | REST API Test                             | 09             |
 | Test Suite                                | 10             |
-| Coverage                                  | 10、11         |
-| Surefire / Failsafe                       | 10、11         |
-| CI                                        | 11             |
+| Coverage                                  | 10             |
+| Surefire / Failsafe                       | 10             |
 | TDD / BDD                                 | 01～02 の補足  |
 | Mutation Testing                          | 10 の補足      |
-| Shift Left                                | 11             |
 
-## 19. メインアプリと学習内容の対応
+## 18. メインアプリと学習内容の対応
 
 学習では、注文管理 REST API の同じ機能を、Unit ごとに異なる境界から確認する。
 
@@ -765,11 +708,10 @@ CD / Deployment は今回の対象外とする。
 | 08   | `ShippingFeeClient`                                                  |
 | 09   | HTTP → Controller → Service → Repository → PostgreSQL / External API |
 | 10   | Unit 01～09 のテストスイート全体                                     |
-| 11   | Maven / Test Suite / Coverage / CI を含むプロジェクト全体            |
 
 この構成により、同じ Production Code に対して、テスト対象の境界や使用する技術がどのように変化するかを比較しながら学習する。
 
-## 20. 学習範囲のまとめ
+## 19. 学習範囲のまとめ
 
 このカリキュラムでは、Java / Spring Boot の Web バックエンドにおける自動テストを、次の流れで体系的に学習する。
 
@@ -797,9 +739,7 @@ External HTTP API / WireMock
 REST API / REST Assured
 ↓
 Maven Test Management / JaCoCo
-↓
-GitHub Actions / CI
 ```
 
-個別のツールの操作だけに偏らず、テスト対象の境界、テストケース設計、依存関係の扱い、テスト自体の品質、DB や HTTP を含む Integration Test、Coverage、CI までを一連の知識としてつなげる。  
+個別のツールの操作だけに偏らず、テスト対象の境界、テストケース設計、依存関係の扱い、テスト自体の品質、DB や HTTP を含む Integration Test、Coverage までを一連の知識としてつなげる。  
 この学習を通して、特定のライブラリだけに依存しない、自動テストに関する汎用的な考え方と、Java / Spring Boot の実務で利用される代表的な技術の双方を身につけることを目指す。

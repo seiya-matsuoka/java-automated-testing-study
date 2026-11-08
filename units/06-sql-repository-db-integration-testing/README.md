@@ -1681,4 +1681,4 @@ Testcontainers を採用しただけで dataset が用意されるわけでは�
 Unit 07 で Spring Context、Service、Repository、PostgreSQL を組み合わせる。  
 Unit 06 で理解した SQL・Fixture・接続先・Transaction を土台に、業務処理を囲む境界へ広げる。
 
-Unit 08 は外部 HTTP Client、Unit 09 は API 全体の連携、Unit 10 は Test の実行構成や Coverage、Unit 11 は CI へと続く。
+Unit 08 は外部 HTTP Client、Unit 09 は API 全体の連携、Unit 10 は Test の実行構成や Coverage を扱う。

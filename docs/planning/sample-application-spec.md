@@ -4,7 +4,7 @@
 
 このドキュメントは、`java-automated-testing-study` で使用するメインアプリケーションの要件・設計・仕様を定義する。  
 今回の学習では、1 つの Spring Boot 製注文管理 REST API を全 Unit で共通利用し、同じ Production Code を異なるテスト境界から繰り返し確認する。  
-そのため、単なる CRUD サンプルではなく、JUnit、Mockito、Spring Test、DB Integration Test、WireMock、REST Assured、Coverage、CI までの学習に必要な業務ルール、条件分岐、依存関係、DB 操作、外部 HTTP 通信を自然に含むアプリケーションとする。
+そのため、単なる CRUD サンプルではなく、JUnit、Mockito、Spring Test、DB Integration Test、WireMock、REST Assured、Coverage までの学習に必要な業務ルール、条件分岐、依存関係、DB 操作、外部 HTTP 通信を自然に含むアプリケーションとする。
 
 このアプリケーション自体の開発を学習の主目的とはしない。  
 一方で、テスト対象となる Production Code の動作や責務を正しく理解できるよう、Java / Spring Boot / SQL / HTTP / Transaction などの実装内容には十分な日本語コメントを記載する。
@@ -32,7 +32,6 @@
 - 外部 HTTP API 依存を持ち、WireMock を用いたテストを行える。
 - 起動した REST API を REST Assured からテストできる。
 - Coverage の確認に十分な条件分岐や状態遷移を持つ。
-- GitHub Actions 上で Unit Test、Integration Test、Coverage を自動実行できる。
 
 ## 4. 対象範囲
 
@@ -107,7 +106,6 @@
 - AssertJ
 - Mockito
 - JaCoCo
-- GitHub Actions
 
 具体的なバージョン番号は、実際にリポジトリを構築する時点で互換性を確認して決定する。
 
@@ -1224,7 +1222,6 @@ Production Code には、Java / Spring Boot / SQL / HTTP / Transaction などの
 | 08   | `ShippingFeeClient`、`HttpShippingFeeClient`、Shipping Fee API                       |
 | 09   | REST API 全体、Spring Boot、PostgreSQL、WireMock                                     |
 | 10   | Production Code と Unit 01～09 のテストスイート全体                                  |
-| 11   | Maven、Testcontainers、Coverage、GitHub Actions を含むプロジェクト全体               |
 
 この対応を基準として、アプリ実装時に各 Unit の学習対象が不足していないことを確認する。
 
@@ -1245,7 +1242,7 @@ Production Code には、Java / Spring Boot / SQL / HTTP / Transaction などの
 - Transaction が注文作成・キャンセルへ適用される。
 - Validation と Error Response が定義どおり動作する。
 - `Clock` が dependency として利用されている。
-- Unit 01～11 で必要となるテスト対象が Production Code 上に存在する。
+- Unit 01～10 で必要となるテスト対象が Production Code 上に存在する。
 
 ## 57. サンプルアプリケーション仕様のまとめ
 

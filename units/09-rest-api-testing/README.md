@@ -1421,10 +1421,7 @@ Annotation だけから「すべての更新が必ず拒否される」と判断
 一覧の同時刻の ID 降順、詳細・一覧の field、field error の実際の message は、確定した実装と Fixture に対応させている。  
 仕様書や既存 Unit の例示を黙って書き換えず、この Unit が確認する実際の振る舞いとして読む。
 
-### この Unit の先にある実行管理・CI
+### この Unit の先にある実行管理
 
 Unit 10 は、ここまで蓄積した Test Suite の命名・選択・Surefire / Failsafe・Coverage などを扱う。  
 今回の Test は既存の `test` 実行で発見される `*Test` とし、Failsafe や Coverage の設定を先行導入していない。
-
-Unit 11 では CI 上で同じ環境を再現し、Job・Log・Report などを確認する。  
-この Unit のローカル成功を、その環境での成功として扱わない。

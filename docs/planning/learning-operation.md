@@ -8,7 +8,7 @@
 ## 2. 学習の基本方針
 
 今回の学習は、完成したテストコードを中心に読み解くコードリーディング型で進める。  
-自動テストやテストコードの経験が少ない状態から、JUnit、Mockito、Spring Test、DB Test、外部 HTTP API Test、Coverage、CI までを段階的に理解できるようにする。
+自動テストやテストコードの経験が少ない状態から、JUnit、Mockito、Spring Test、DB Test、外部 HTTP API Test、Coverage までを段階的に理解できるようにする。
 
 基本的な学習の流れは次のとおりとする。
 
@@ -74,9 +74,7 @@ java-automated-testing-study/
 │  │  └─ README.md
 │  ├─ 09-rest-api-testing/
 │  │  └─ README.md
-│  ├─ 10-test-management-coverage/
-│  │  └─ README.md
-│  └─ 11-ci-automated-testing/
+│  └─ 10-test-management-coverage/
 │     └─ README.md
 │
 ├─ src/
@@ -86,9 +84,6 @@ java-automated-testing-study/
 │  └─ test/
 │     ├─ java/
 │     └─ resources/
-│
-├─ .github/
-│  └─ workflows/
 │
 ├─ pom.xml
 ├─ .gitignore
@@ -114,7 +109,6 @@ Unit ディレクトリ名は次のとおりとする。
 | 08   | `08-external-http-api-testing`             |
 | 09   | `09-rest-api-testing`                      |
 | 10   | `10-test-management-coverage`              |
-| 11   | `11-ci-automated-testing`                  |
 
 `units/` 配下には、原則として各 Unit の `README.md` を配置する。  
 メインアプリやテストコードそのものは `units/` 配下へ複製せず、通常の Java / Maven プロジェクトとして `src/main/`、`src/test/` などに配置する。
@@ -144,7 +138,6 @@ Unit ディレクトリ名は次のとおりとする。
 - 設定ファイル
 - Maven 設定
 - Testcontainers / WireMock / REST Assured / JaCoCo 等の設定
-- GitHub Actions Workflow
 - 補助教材
 - その他、その Unit の学習に必要なプログラム・設定類
 
@@ -302,7 +295,6 @@ Test Double や実依存の境界を確認
 - WireMock の request
 - Maven Test Report
 - Coverage Report
-- GitHub Actions の Job / Log
 
 実行ログは原則として全文を転載せず、学習上確認すべき部分を中心に記載する。
 
@@ -421,7 +413,6 @@ README では、実行結果の巨大なログ全文を保存することを目�
 - WireMock が受信した request
 - Surefire / Failsafe の結果
 - JaCoCo の Line / Branch Coverage
-- GitHub Actions の Job 成否
 
 結果が環境や実行時刻によって変わる場合は、特定の値そのものではなく、どこを確認すべきかを説明する。
 
@@ -475,17 +466,14 @@ feature/07-spring-boot-integration-testing
 feature/08-external-http-api-testing
 feature/09-rest-api-testing
 feature/10-test-management-coverage
-feature/11-ci-automated-testing
 ```
 
 Pull Request の記載形式、review、merge 方法などの具体的な GitHub 運用ルールは、この学習計画では規定しない。  
 それらはユーザー側の運用に従う。
 
-Unit 11 で扱う GitHub Actions や CI は Git / GitHub の運用ルールではなく、自動テスト学習の一部として `learning-curriculum.md` に従って扱う。
-
 ## 17. Git に含めるもの・含めないもの
 
-学習教材そのものとなるソースコード、テストコード、設定、SQL、Fixture、Unit README、計画ドキュメント、GitHub Actions Workflow などは Git 管理対象とする。
+学習教材そのものとなるソースコード、テストコード、設定、SQL、Fixture、Unit README、計画ドキュメントなどは Git 管理対象とする。
 
 一方、通常の開発プロジェクトで再生成可能な Build 成果物や一時ファイルは Git 管理対象外とする。  
 例えば、Maven の `target/` 配下などは原則として `.gitignore` の対象とする。
@@ -544,7 +532,7 @@ units/03-test-doubles-mockito/README.md
 Unit ごとに別のアプリケーションや別プロジェクトを作成し直さない。
 
 例えば、Unit 01～02 で作成した Unit Test は後続 Unit でもそのまま残し、Unit 03 では Service の Test を追加し、Unit 05 では Controller Test、Unit 06 では Repository Test を追加していく。  
-Unit 10 では、ここまで作成したテスト群全体を Test Suite として扱い、Unit 11 では同じテスト群を CI 上で自動実行する。
+Unit 10 では、ここまで作成したテスト群全体を Test Suite として扱い、Maven による実行管理と Coverage の確認までを学習する。
 
 この継続性により、同じ Production Code に対してテスト境界がどのように広がるのかを比較しながら学習できる構成とする。
 

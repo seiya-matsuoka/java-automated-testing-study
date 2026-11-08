@@ -8,7 +8,7 @@
 
 1. 対象ワークスペース、現在の branch、`git status` を確認し、既存の未コミット変更を把握する。
 2. 次のドキュメントを参照する。
-   - [学習カリキュラム](docs/planning/learning-curriculum.md)：Unit 01〜11 の学習範囲・目標。
+   - [学習カリキュラム](docs/planning/learning-curriculum.md)：Unit 01〜10 の学習範囲・目標。
    - [学習運用方針](docs/planning/learning-operation.md)：生成単位、Unit README、コメント、実行・確認方法。
    - [サンプルアプリケーション仕様](docs/planning/sample-application-spec.md)：注文管理 REST API の仕様・設計・業務ルール。
    - [Codex 引き継ぎドキュメント](docs/codex-handover.md)：移行前のチャットで確定した品質基準、運用上の判断、注意事項。
@@ -22,7 +22,7 @@
 
 - Java / Spring Boot の自動テストを、完成済みコードのコードリーディングと実行・確認を中心に体系的に学習するリポジトリとする。
 - Java 21、Spring Boot、Maven による単一の注文管理 REST API と、Unit を通じて蓄積するテストスイートを継続して利用する。実際のバージョン・依存関係は `pom.xml` を確認する。
-- **Unit 01〜05 は生成・学習ともに完了しており、次の対象は Unit 06 である。** ただし、実ファイル・branch・作業状態は Codex 起動時に確認する。
+- **Unit 01〜10 の教材生成・学習は完了している。** 学習完了後の作業として、ドキュメント整理とルート `README.md` の作成を扱う。実ファイル・branch・作業状態は Codex 起動時に確認する。
 - 既存 Unit を学習済みの基準資料として尊重し、ユーザーの明示的な依頼なしに書き換えない。
 - 既存の Production Code を意図的に悪い実装へ変えたり、Unit ごとに別のアプリを作り直したりしない。
 - 新しい学習項目、テスト件数、クラス名、Fixture の詳細など、カリキュラムにない事項を過去の確定事項として扱わない。
@@ -79,8 +79,8 @@
 - 作業前に実在する `pom.xml`、Maven Wrapper、既存テスト・設定、`docs/planning/` の実行条件を確認する。コマンド・依存関係・サービスの存在を推測しない。
 - 変更後は可能な範囲で対象テストと関連する既存テスト、必要な build / format 等を実行し、回帰の有無を確認する。
 - 通常のローカル学習環境は Windows + Git Bash を想定し、README のコマンドは原則として Maven Wrapper 等の一般的でコピーしやすい形にする。
-- DB・Docker / Testcontainers・外部 HTTP・CI を扱う Unit は、実際に起動する範囲と外部依存を明確にする。既存の永続 DB や他の環境のデータを検証目的で無断更新・削除しない。
-- 外部通信、パッケージ取得、DB 変更、Git / GitHub 操作、エージェント設定変更などは、グローバル `AGENTS.md` の承認ルールに従う。特に Unit 11 の Workflow 作成と GitHub 上での実行・公開操作を混同しない。
+- DB・Docker / Testcontainers・外部 HTTP を扱う Unit は、実際に起動する範囲と外部依存を明確にする。既存の永続 DB や他の環境のデータを検証目的で無断更新・削除しない。
+- 外部通信、パッケージ取得、DB 変更、Git / GitHub 操作、エージェント設定変更などは、グローバル `AGENTS.md` の承認ルールに従う。
 - 変更と無関係の失敗が見つかった場合は、対象外まで独断で修正せず、原因と影響を報告する。
 - 実行済み検証、未実施検証、失敗とその原因を区別する。構文確認だけで Maven Test や Integration Test が成功したと報告しない。
 

@@ -183,7 +183,7 @@ System が利用者や Business の要求を満たしているかという観点
 Regression Test は、変更によって既存の正常な振る舞いが壊れていないことを確認するための再テストを指す。
 
 一度作成した自動テストを Production Code の変更後にも継続して実行することは、Regression を検出する基本的な仕組みとなる。  
-Unit 10、Unit 11 では、複数の Test をまとめて実行し、CI から継続的に確認する流れへつなげる。
+Unit 10 では、複数の Test を Test Suite として整理し、Maven でまとめて実行する方法を扱う。
 
 ### Smoke Test
 
@@ -663,7 +663,7 @@ Test Runner は、発見した Test を実際に実行し、成功・失敗を�
 ./mvnw test
 ```
 
-Maven を入口にすることで、ローカルでも後の CI でも同じ Project 設定を使って Test を実行しやすくなる。
+Maven を入口にすることで、ローカルや CI などの異なる環境でも同じ Project 設定を使って Test を実行しやすくなる。
 
 今回の実行関係を大きく整理すると、次の流れになる。
 
